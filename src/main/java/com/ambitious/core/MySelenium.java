@@ -101,6 +101,7 @@ public class MySelenium {
             this.proxy = null;
         }
         if (this.driver != null) {
+            this.driver.quit();
             this.driver.close();
             this.driver = null;
         }

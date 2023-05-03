@@ -1,11 +1,8 @@
 package com.ambitious.core;
 
-import cn.hutool.core.io.StreamProgress;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
 import com.ambitious.core.downloader.UrlDownloader;
-import com.ambitious.core.downloader.hutool.HuToolUrlDownloader;
-import com.ambitious.core.downloader.mgm3u8.MgM3U8Downloader;
+import com.ambitious.core.downloader.m3u8.mgm3u8.MgM3U8Downloader;
 import com.ambitious.core.downloader.multithread.MultiThreadUrlDownloader;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
@@ -43,7 +40,7 @@ public class Main {
     /**
      * 解析链接
      */
-    private static final String BASE_URL = DecodeBaseUrl.MG;
+    private static final String BASE_URL = DecodeBaseUrl.XIA_MI;
     /**
      * 等待解析的时间（秒）
      */
@@ -55,6 +52,7 @@ public class Main {
     public static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws InterruptedException {
+        // 读取任务列表
         readVideoData();
         int size = ORIGIN_VIDEOS.size();
         if (size < 1) {
@@ -63,7 +61,9 @@ public class Main {
         }
         LOGGER.info("开始下载 " + size + " 个视频文件");
         CountDownLatch latch = new CountDownLatch(size);
+        // 监听并处理下载列表
         listenDownload(latch, size);
+        // 监听并处理解析任务列表
         listenDecode(size);
         latch.await();
         LOGGER.info("所有视频下载完成！");
@@ -118,11 +118,6 @@ public class Main {
                         latch.countDown();
                     }
                 });
-                try {
-                    latch.await();
-                    // 限制解析的速度不要太快
-                    Thread.sleep(20000);
-                } catch (Exception e) {}
             }
         }, "t-decode-listening").start();
     }

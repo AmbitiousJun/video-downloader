@@ -1,0 +1,125 @@
+No.     Time           Source                Destination           Protocol Length Info
+    370 1.597764       198.18.0.1            198.18.4.209          HTTP     993    GET /videos/vts/20230418/63/db/0dc91bab842bd0c915037122eb8ef19a.ts?key=02d90bf8e7d22c40c2a3220e19ba18f23&dis_k=f70670af4f0110fd19322be3e337d229&dis_t=1682948951&dis_dz=CNC-GuangDong_GuangZhou&dis_st=152&src=iqiyi.com&dis_hit=0&dis_tag=01010000&random=1&uuid=da6b0c95-644fc357-377&br=100&mss=1&sd=37920&qd_tm=1682948951952&dis_hbr=4&pv=0.1&qd_sc=f4186f9651a7311e825cc3e0aa622ac9&qd_tvid=4301714630709200&qd_uid=1764530833&qd_p=da6b0c95&qd_vip=1&fr=25&bid=600&qd_index=vod&qd_src=01032001010000000000&dis_src=vrs&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&qd_k=23245979b1b21e59c4a135c4af38118d&cphc=arta HTTP/1.1 
+
+Frame 370: 993 bytes on wire (7944 bits), 993 bytes captured (7944 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.209
+Transmission Control Protocol, Src Port: 58884, Dst Port: 80, Seq: 1, Ack: 1, Len: 937
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+   4731 2.901669       198.18.0.1            198.18.4.209          HTTP     993    GET /videos/vts/20230418/63/db/0dc91bab842bd0c915037122eb8ef19a.ts?key=02d90bf8e7d22c40c2a3220e19ba18f23&dis_k=f70670af4f0110fd19322be3e337d229&dis_t=1682948951&dis_dz=CNC-GuangDong_GuangZhou&dis_st=152&src=iqiyi.com&dis_hit=0&dis_tag=01010000&random=1&uuid=da6b0c95-644fc357-377&br=100&mss=1&sd=37920&qd_tm=1682948951952&dis_hbr=4&pv=0.1&qd_sc=f4186f9651a7311e825cc3e0aa622ac9&qd_tvid=4301714630709200&qd_uid=1764530833&qd_p=da6b0c95&qd_vip=1&fr=25&bid=600&qd_index=vod&qd_src=01032001010000000000&dis_src=vrs&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&qd_k=23245979b1b21e59c4a135c4af38118d&cphc=arta HTTP/1.1 
+
+Frame 4731: 993 bytes on wire (7944 bits), 993 bytes captured (7944 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.209
+Transmission Control Protocol, Src Port: 58884, Dst Port: 80, Seq: 938, Ack: 2097807, Len: 937
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+   7507 4.537194       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 7507: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58925, Dst Port: 80, Seq: 1, Ack: 1, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+   7509 4.537236       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 7509: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58926, Dst Port: 80, Seq: 1, Ack: 1, Len: 956
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+   8321 4.916016       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 8321: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58931, Dst Port: 80, Seq: 1, Ack: 1, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  11711 5.283018       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 11711: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58926, Dst Port: 80, Seq: 957, Ack: 1049571, Len: 956
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  11791 5.289825       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 11791: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58925, Dst Port: 80, Seq: 952, Ack: 1049571, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  14601 5.686939       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 14601: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58931, Dst Port: 80, Seq: 952, Ack: 1049571, Len: 956
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  16952 5.970204       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 16952: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58926, Dst Port: 80, Seq: 1913, Ack: 2099141, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  17161 5.994970       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 17161: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58925, Dst Port: 80, Seq: 1903, Ack: 2099141, Len: 956
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  19527 6.367437       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 19527: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58931, Dst Port: 80, Seq: 1908, Ack: 2099141, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  21975 6.666310       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 21975: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58926, Dst Port: 80, Seq: 2864, Ack: 3148711, Len: 956
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  22209 6.691713       198.18.0.1            198.18.4.219          HTTP     1007   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 22209: 1007 bytes on wire (8056 bits), 1007 bytes captured (8056 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58925, Dst Port: 80, Seq: 2859, Ack: 3148711, Len: 951
+Hypertext Transfer Protocol
+
+No.     Time           Source                Destination           Protocol Length Info
+  23867 7.063109       198.18.0.1            198.18.4.219          HTTP     1012   GET /videos/vts/20230418/d1/6c/3376437ec2fe7430d94ad51a330d27eb.ts?key=0aeb335d810783d11d4ec87cc83a6afc2&dis_k=e9d1914640ed4741613950b2d9a1516b&dis_t=1682947619&dis_dz=CERNET-GuangDong&dis_st=139&src=iqiyi.com&dis_hit=0&dis_tag=01010000&uuid=cac05079-644fbe23-350&br=200&mss=1&fr=60&tfstatus=0&qyid=7fbd512c580d8d5344e6eeef9a1c619e&qd_tm=1682947619627&cell=0&no_oss=1&qd_sc=398e7deaabe09726b908428a18a9e2cc&qd_tvid=4301714630709200&qd_k=bd4faae04cb9731fdf4835472674cf22&qd_p=da6b0c95&dis_hbr=4&qd_src=01032001010000000000&bid=800&qd_index=vod&qd_vip=1&qd_uid=1764530833&qd_did=7fbd512c580d8d5344e6eeef9a1c619e&qd_vipres=0&pv=0.1&cphc=arta HTTP/1.1 
+
+Frame 23867: 1012 bytes on wire (8096 bits), 1012 bytes captured (8096 bits) on interface utun3, id 0
+Null/Loopback
+Internet Protocol Version 4, Src: 198.18.0.1, Dst: 198.18.4.219
+Transmission Control Protocol, Src Port: 58931, Dst Port: 80, Seq: 2859, Ack: 3148711, Len: 956
+Hypertext Transfer Protocol

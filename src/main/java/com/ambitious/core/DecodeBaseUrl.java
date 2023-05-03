@@ -7,6 +7,7 @@ package com.ambitious.core;
  */
 public interface DecodeBaseUrl {
 
-    String TX = "https://jx.jsonplayer.com/player/?url=";
-    String MG = "https://jx.xmflv.com/?url=";
+    String JSON_PLAYER = "https://jx.jsonplayer.com/player/?url=";
+    String XIA_MI = "https://jx.xmflv.com/?url=";
+    String MAO = "https://www.mtosz.com/m3u8.php?url=";
 }

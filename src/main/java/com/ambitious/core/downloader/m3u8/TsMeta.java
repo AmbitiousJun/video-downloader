@@ -1,4 +1,4 @@
-package com.ambitious.core.downloader.mgm3u8;
+package com.ambitious.core.downloader.m3u8;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
