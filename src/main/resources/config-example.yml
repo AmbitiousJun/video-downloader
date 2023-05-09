@@ -1,0 +1,40 @@
+# 这只是一个示例的配置文件，请先拷贝一份并命名为 config.yml 再进行使用
+
+selenium: # selenium 模拟器相关配置
+  chrome-driver-path: /Users/ambitious/App/chromedriver_mac_arm64/chromedriver # ChromeDriver 在本地的路径
+  show-window: false # 运行程序时，是否实时显示模拟器窗口
+
+decoder: # 解码器相关配置
+  use: vip-fetch # 使用哪种解析方式，可选值：none, free-api, vip-fetch
+  resource-type: m3u8 # 解析出来的文件类型，可选值：mp4, m3u8
+  thread-count: 1 # 参与解析的线程个数
+  free-api: # 使用免费接口进行解析的相关配置
+    use: Mao # 要使用的解析接口，必须和 decoder.free-api.apis 配置列表中的任意一个匹配
+    apis: # 免费接口列表，格式：name,url
+      - JsonPlayer,https://jx.jsonplayer.com/player/?url=
+      - XiaMi,https://jx.xmflv.com/?url=
+      - Mao,https://www.mtosz.com/player/Mao.php?code=Mao&if=1&url=
+    valid-url-prefixes: # 各大视频网站解析出来的资源地址前缀
+      - https://om.tc.qq.com
+      - https://cache.m3u8.pw/Cache/qq
+      - https://cache.xmflv.cc:4433/Cache/qq
+      - https://sluiceyf.titan.mgtv.com
+    wait-seconds: 30 # 进入解析网站等待解析的时间
+  vip-fetch: # 提取视频网站资源相关配置（需要先开通相应的会员）
+    use: qy # 提取哪个视频网站
+    sites: # 视频网站配置
+      qy:
+        domain: .iqiyi.com # Cookie 用于哪个域名
+        cookies: # 视频网站的登录态 Cookie，格式：key,value
+          - YourCookieKey,YourCookieValue
+
+downloader:
+  use: multi-thread # 要使用哪个下载器，可选值：simple, multi-thread
+  task-thread-count: 2 # 处理下载任务的线程个数
+  dl-thread-count: 32 # 多线程下载的线程个数
+  download-dir: /Users/ambitious/Downloads # 视频文件下载位置
+  ts-dir-suffix: temp_ts_files # 暂存 ts 文件的目录后缀
+
+transfer:
+  use: ffmpeg # 要选用哪个转码器，可选值：file-channel, cv, ffmpeg
+  ts-filename-regex: (?<=_)(\d+)(?=\.) # 正则表达式，用于匹配出 ts 文件的序号
