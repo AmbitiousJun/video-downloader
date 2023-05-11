@@ -90,7 +90,7 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
         driver.navigate().refresh();
         driver.executeScript(script);
         // 等待嗅探完成
-        Thread.sleep(10000);
+        Thread.sleep(20000);
     }
 
     /**

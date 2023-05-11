@@ -55,9 +55,15 @@ public class M3U8Utils {
      * @param headerMap 请求头，可以为空
      * @return ts 文件列表
      */
-    public static Deque<TsMeta> readTsUrls(String m3u8Url, Map<String, String> headerMap) {
+    public static Deque<TsMeta> readTsUrls(String m3u8Url, Map<String, String> headerMap) throws InterruptedException {
         if (m3u8Url.startsWith(NETWORK_LINK_PREFIX)) {
             return readHttpTsUrls(m3u8Url, headerMap);
+        }
+        // 解析器使用的是 nio 写出文件，这里使用自旋锁等待文件生成
+        File file = new File(m3u8Url.substring(7));
+        while (!file.exists()) {
+            LOGGER.info("查找不到本地的 m3u8 文件：{}", m3u8Url);
+            Thread.sleep(1000);
         }
         // 1 读取 m3u8 文件
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(m3u8Url).openStream()))) {

@@ -16,12 +16,12 @@ public class DownloadThreadPool {
     private static final int CORE_POOL_SIZE;
     private static final int MAXIMUM_POOL_SIZE;
     private static final long KEEP_ALIVE_TIME = 30;
-    private static final BlockingQueue<Runnable> WORK_QUEUE = new ArrayBlockingQueue<>(1024);
+    private static final BlockingQueue<Runnable> WORK_QUEUE = new ArrayBlockingQueue<>(1024 * 1024);
     private static final ThreadFactory FACTORY = new ThreadFactoryBuilder().setNameFormat("download-pool-%d").build();
 
     static {
         CORE_POOL_SIZE = Config.DOWNLOADER.DL_THREAD_COUNT;
-        MAXIMUM_POOL_SIZE = Config.DOWNLOADER.DL_THREAD_COUNT + 10;
+        MAXIMUM_POOL_SIZE = Config.DOWNLOADER.DL_THREAD_COUNT;
         // 初始化线程池
         SERVICE = new ThreadPoolExecutor(
                 CORE_POOL_SIZE,

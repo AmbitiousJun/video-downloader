@@ -39,7 +39,7 @@ public class QyInitializer implements SiteInitializer {
             // 1 检查是否已经初始化过
             if (checkInit()) {
                 driver.get(url);
-                Thread.sleep(10000);
+                Thread.sleep(20000);
                 return;
             }
             // 2 进入网页，设置 Cookie
@@ -52,15 +52,15 @@ public class QyInitializer implements SiteInitializer {
             // 3 重新加载网页，让 Cookie 生效
             LOGGER.info("正在等待 Cookie 信息生效...");
             driver.navigate().refresh();
-            Thread.sleep(10000);
+            Thread.sleep(20000);
             driver.navigate().refresh();
-            Thread.sleep(15000);
+            Thread.sleep(30000);
             // 4 查找网页中隐藏的清晰度选择器，将它设置为显示状态
             LOGGER.info("正在查找网页中的清晰度设置框...");
             WebElement panel = driver.findElement(By.cssSelector("iqpdiv[data-player-hook='definitionPanel']"));
             String script = "arguments[0].setAttribute('style', 'display: block')";
             driver.executeScript(script, panel);
-            Thread.sleep(200);
+            Thread.sleep(400);
             // 5 切换到 1080P 清晰度
             LOGGER.info("正在切换到 1080P 清晰度...");
             Actions actions = new Actions(driver);

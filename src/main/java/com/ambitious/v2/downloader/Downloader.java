@@ -40,13 +40,14 @@ public class Downloader {
                 while (list.isEmpty()) {
                     // 每隔两秒检查一下下载线程
                     try {
+                        LOGGER.info("当前没有下载任务，监听线程阻塞中...");
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 }
+                final DownloadMeta meta = list.pop();
                 DownloadTaskThreadPool.submit(() -> {
-                    DownloadMeta meta = list.pop();
                     try {
                         String link = meta.getLink();
                         String fileName = meta.getFileName();
@@ -59,7 +60,9 @@ public class Downloader {
                             throw new RuntimeException("下载失败", e);
                         }
                         LOGGER.error("文件下载失败，重新加入任务列表", e);
-                        list.offerLast(meta);
+                        synchronized (Downloader.class) {
+                            list.offerLast(meta);
+                        }
                     }
                 });
             }
