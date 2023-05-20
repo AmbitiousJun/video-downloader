@@ -13,8 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 
@@ -132,7 +136,7 @@ public class Config {
      */
     private static Map<String, Object> loadConfigMap() throws IOException {
         Yaml yaml = new Yaml();
-        try (InputStream is = Config.class.getClassLoader().getResourceAsStream("config.yml")) {
+        try (InputStream is = Files.newInputStream(Paths.get("config/config.yml"))) {
             return yaml.load(is);
         }
     }

@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.PageLoadStrategy;
 
+import java.io.File;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -81,11 +82,7 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
      * @throws Exception 脚本注入失败
      */
     private void injectMediaFetchScript() throws Exception {
-        URL scriptUrl = this.getClass().getClassLoader().getResource("media-fetch.js");
-        if (scriptUrl == null) {
-            throw new RuntimeException("找不到脚本文件 media-fetch.js");
-        }
-        String script = new String(Files.readAllBytes(Paths.get(scriptUrl.toURI())));
+        String script = new String(Files.readAllBytes(Paths.get("config/media-fetch.js")));
         // 刷新页面之后立马注入脚本，这里有个前提条件是页面加载策略为 Eager
         driver.navigate().refresh();
         driver.executeScript(script);
