@@ -54,12 +54,20 @@ public abstract class M3U8Actuator implements DownloadActuator {
 
     protected void coreDownload(DownloadMeta meta, TsMeta tsMeta, File tempDir) throws Exception {
         File ts = new File(tempDir, String.format(FileConstant.TS_FILENAME_FORMAT, tsMeta.getIndex()));
-        // 有些 url 可能只是中转 url，需要添加请求头
-        try (HttpResponse res = HttpRequest.get(tsMeta.getUrl()).addHeaders(meta.getHeaderMap()).keepAlive(true).execute()) {
-            if (res.getStatus() == 302) {
-                HttpUtil.downloadFile(res.header("Location"), ts);
-            } else {
-                HttpUtils.downloadStream2File(res.bodyStream(), ts);
+        boolean success = false;
+        while (!success) {
+            try (HttpResponse res = HttpRequest.get(tsMeta.getUrl()).addHeaders(meta.getHeaderMap()).keepAlive(true).execute()) {
+                // 有些 url 可能只是中转 url，需要添加请求头
+                if (res.getStatus() == 302) {
+                    HttpUtil.downloadFile(res.header("Location"), ts);
+                } else if (res.getStatus() == 429) {
+                    LOGGER.info("检测到请求频繁，两秒后重试");
+                    Thread.sleep(2000);
+                    continue;
+                } else {
+                    HttpUtils.downloadStream2File(res.bodyStream(), ts);
+                }
+                success = true;
             }
         }
     }

@@ -40,7 +40,6 @@ public class Downloader {
                 while (list.isEmpty()) {
                     // 每隔两秒检查一下下载线程
                     try {
-                        LOGGER.info("当前没有下载任务，监听线程阻塞中...");
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
