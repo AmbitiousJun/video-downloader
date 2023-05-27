@@ -4,6 +4,7 @@ import com.ambitious.v1.downloader.MultiThreadManager;
 import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
+import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             BigDecimal totalSize = new BigDecimal(fileTotalSize.get());
             // 2 计算百分比
             BigDecimal percent = curSize.divide(totalSize, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-            LOGGER.info("下载进度：{}%，文件名：{}", percent, fileName);
+            LogUtils.info(LOGGER, String.format("下载进度：%s%，文件名：%s", percent, fileName));
             if (curSize.compareTo(totalSize) >= 0) {
                 // 文件已经下载完成
                 timer.cancel();
@@ -63,7 +64,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             }
         }, 0, 10000);
 
-        LOGGER.info("开始下载，文件名：{}", fileName);
+        LogUtils.info(LOGGER, String.format("开始下载，文件名：%s", fileName));
         HttpURLConnection conn = null;
         try {
             // 1 初始化文件
@@ -88,7 +89,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                         new UnitDownloader(task.getFrom(), task.getTo(), meta.getLink(), dest).download(fileCurSize);
                         finishCount.incrementAndGet();
                     } catch (Exception e) {
-                        LOGGER.error("分片下载失败，重新加入任务列表");
+                        LogUtils.error(LOGGER, "分片下载失败，重新加入任务列表");
                         taskList.offerLast(task);
                     }
                 });

@@ -110,28 +110,36 @@ public class M3U8Utils {
         int lastSepPos = m3u8Url.substring(0, suffixPos).lastIndexOf("/");
         String baseUrl = m3u8Url.substring(0, lastSepPos);
         // 1 读取 m3u8 文件
-        try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))
-        ) {
-            Deque<TsMeta> ans = Queues.newArrayDeque();
-            // 2 读取数据，封装对象
-            String line = reader.readLine();
-            while (line != null) {
-                if (line.startsWith("#") || StrUtil.isBlank(line)) {
-                    // 去除注释和空行
-                    line = reader.readLine();
+        while (true) {
+            try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
+            ) {
+                if (res.getStatus() == 429) {
+                    LOGGER.info("请求 m3u8 文件失败：触发频繁请求，两秒后重试");
+                    Thread.sleep(2000);
                     continue;
                 }
-                String metaUrl = line;
-                if (!line.startsWith(NETWORK_LINK_PREFIX)) {
-                    metaUrl = baseUrl + "/" + metaUrl;
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))) {
+                    Deque<TsMeta> ans = Queues.newArrayDeque();
+                    // 2 读取数据，封装对象
+                    String line = reader.readLine();
+                    while (line != null) {
+                        if (line.startsWith("#") || StrUtil.isBlank(line)) {
+                            // 去除注释和空行
+                            line = reader.readLine();
+                            continue;
+                        }
+                        String metaUrl = line;
+                        if (!line.startsWith(NETWORK_LINK_PREFIX)) {
+                            metaUrl = baseUrl + "/" + metaUrl;
+                        }
+                        ans.offerLast(new TsMeta(metaUrl, ans.size() + 1));
+                        line = reader.readLine();
+                    }
+                    return ans;
                 }
-                ans.offerLast(new TsMeta(metaUrl, ans.size() + 1));
-                line = reader.readLine();
+            } catch (Exception e) {
+                throw new RuntimeException("读取 m3u8 文件失败", e);
             }
-            return ans;
-        } catch (Exception e) {
-            throw new RuntimeException("读取 m3u8 文件失败", e);
         }
     }
 

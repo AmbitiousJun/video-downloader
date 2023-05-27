@@ -1,20 +1,14 @@
 package com.ambitious.v2.downloader.actuator;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
-import com.ambitious.v2.constant.FileConstant;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.TsMeta;
-import com.ambitious.v2.util.HttpUtils;
-import com.ambitious.v2.util.M3U8Utils;
+import com.ambitious.v2.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Deque;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -40,14 +34,13 @@ public class M3U8MultiThreadActuator extends M3U8Actuator {
             DownloadThreadPool.submit(() -> {
                 try {
                     coreDownload(meta, tsMeta, tempDir);
-                    LOGGER.info("请求 ts 文件中，当前进度：{} / {}，目标视频：{}", finish.get(), size, meta.getFileName());
-                    finish.incrementAndGet();
+                    LogUtils.info(LOGGER, String.format("请求 ts 文件中，当前进度：%d / %d，目标视频：%s", finish.incrementAndGet(), size, meta.getFileName()));
                 } catch (Exception e) {
-                    LOGGER.error("请求失败，重新加入到队列中，目标视频：{}", meta.getFileName());
+                    LogUtils.error(LOGGER, String.format("请求失败，重新加入到队列中，目标视频：%s", meta.getFileName()));
                     tsMetas.offerLast(tsMeta);
                 }
             });
         }
-        LOGGER.info("ts 列表下载完成");
+        LogUtils.success(LOGGER, "ts 列表下载完成");
     }
 }

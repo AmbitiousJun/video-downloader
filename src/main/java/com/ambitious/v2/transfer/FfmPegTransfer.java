@@ -1,6 +1,7 @@
 package com.ambitious.v2.transfer;
 
 import cn.hutool.core.util.StrUtil;
+import com.ambitious.v2.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,10 +56,10 @@ public class FfmPegTransfer implements TsTransfer {
         BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
         String line = br.readLine();
         while (StrUtil.isNotEmpty(line)) {
-            LOGGER.info(line);
+            LogUtils.info(LOGGER, line);
             line = br.readLine();
         }
         p.waitFor();
-        LOGGER.info("转码完成，文件名：{}", output.getName());
+        LogUtils.success(LOGGER, String.format("转码完成，文件名：%s", output.getName()));
     }
 }

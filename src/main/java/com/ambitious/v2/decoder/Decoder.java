@@ -8,6 +8,7 @@ import com.ambitious.v2.decoder.selenium.SeleniumDecoder;
 import com.ambitious.v2.decoder.selenium.VipFetchSeleniumDecoder;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.VideoMeta;
+import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +31,16 @@ public class Decoder {
     @SuppressWarnings("all")
     public static void listenAndDecode(Deque<VideoMeta> list, DecodeListener listener) {
         new Thread(() -> {
-            LOGGER.info("开始监听解析列表");
+            LogUtils.info(LOGGER, "开始监听解析列表");
             int size = list.size();
             final AtomicInteger finish = new AtomicInteger(0);
             try {
+            out:
                 while (true) {
                     while (list.size() == 0) {
                         if (finish.get() == size) {
-                            LOGGER.info("所有文件已解析完成，请耐心等待下载结束...");
-                            return;
+                            LogUtils.success(LOGGER, "所有任务解析完成，请耐心等待下载结束");
+                            break out;
                         }
                         try {
                             Thread.sleep(2000);
@@ -51,7 +53,7 @@ public class Decoder {
                     String name = meta.getName();
                     String url = meta.getUrl();
                     String fileName = Config.DOWNLOADER.DOWNLOAD_DIR + "/" + name + ".mp4";
-                    LOGGER.info("检测到解析任务，标题：{}，源地址：{}", name, url);
+                    LogUtils.info(LOGGER, String.format("检测到解析任务，标题：%s，源地址：%s", name, url));
                     // 2 判断解析类型
                     DecoderType use = Config.DECODER.USE;
                     try {
@@ -73,9 +75,9 @@ public class Decoder {
                             listener.newDecodeUrl(useVipFetchDecode(meta, fileName));
                         }
                         int current = finish.incrementAndGet();
-                        LOGGER.info("已解析完成视频数：{}，剩余：{}", current, size - current);
+                        LogUtils.success(LOGGER, String.format("已解析完成视频数：%d，剩余：%d", current, size - current));
                     } catch (Exception e) {
-                        LOGGER.error("视频下载地址解析失败，重新加入任务列表", e);
+                        LogUtils.error(LOGGER, "视频下载地址解析失败：" + e.getMessage() + "，重新加入任务列表");
                         list.offerLast(meta);
                     }
                 }
@@ -83,7 +85,7 @@ public class Decoder {
                 if (decoder != null) {
                     try {
                         decoder.close();
-                        LOGGER.info("解析器成功关闭");
+                        LogUtils.success(LOGGER, "解析器成功关闭");
                     } catch (IOException e) {
                         throw new RuntimeException("解析器关闭失败", e);
                     }
@@ -99,9 +101,9 @@ public class Decoder {
      * @return 下载信息
      */
     private static DownloadMeta useVipFetchDecode(VideoMeta meta, String fileName) {
-        LOGGER.info("开始解析视频，标题：{}, 源地址：{}", meta.getName(), meta.getUrl());
+        LogUtils.info(LOGGER, String.format("开始解析视频，标题：%s, 源地址：%s", meta.getName(), meta.getUrl()));
         String link = decoder.fetchDownloadLink(meta.getUrl());
-        LOGGER.info("解析成功，已添加到下载列表，文件名：{}，下载地址：{}", fileName, link);
+        LogUtils.success(LOGGER, String.format("解析成功，已添加到下载列表，文件名：%s，下载地址：%s", fileName, link));
         // 添加到下载列表
         return new DownloadMeta(link, fileName);
     }
@@ -113,7 +115,7 @@ public class Decoder {
      * @return 下载信息
      */
     private static DownloadMeta useFreeApiDecode(VideoMeta meta, String fileName) {
-        LOGGER.info("开始解析视频，标题：{}, 源地址：{}", meta.getName(), meta.getUrl());
+        LogUtils.info(LOGGER, String.format("开始解析视频，标题：%s, 源地址：%s", meta.getName(), meta.getUrl()));
         FreeApiConfig freeApiConfig = Config.DECODER.FREE_API;
         String baseUrl = freeApiConfig.APIS.get(freeApiConfig.USE);
         String finalUrl = baseUrl + meta.getUrl();
@@ -121,7 +123,7 @@ public class Decoder {
         Map<String, String> headerMap = Maps.newHashMap();
         headerMap.put("origin", baseUrl.substring(0, baseUrl.substring(8).indexOf("/") + 8));
         headerMap.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
-        LOGGER.info("解析成功，已添加到下载列表，文件名：{}，下载地址：{}", fileName, link);
+        LogUtils.success(LOGGER, String.format("解析成功，已添加到下载列表，文件名：%s，下载地址：%s", fileName, link));
         // 添加到下载列表
         return new DownloadMeta(link, fileName, headerMap);
     }

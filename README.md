@@ -25,3 +25,9 @@
 - v2 版本支持下载视频网站的会员视频（需要提前设置好 Cookie）
 
   - 目前只支持奇艺；优酷的话视频都被加密处理了，我不会搞，直接放弃，其他两个网站等我有钱开会员再说
+
+## ⚠️ 注意事项
+
+1. 请先确保你的电脑具有 java 运行环境（JRE）
+2. 如果要使用解析功能，请先自行安装 [ChromeDriver](https://www.selenium.dev/documentation/webdriver/getting_started/install_drivers/#quick-reference) 版本号需要与电脑上浏览器的版本号对应上
+3. 如果要使用 ffmpeg 进行转码，请先自行安装 [ffmpeg](https://ffmpeg.org/)

@@ -10,6 +10,7 @@ import com.ambitious.v2.downloader.actuator.Mp4SimpleActuator;
 import com.ambitious.v2.downloader.actuator.mp4multithread.Mp4MultiThreadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadTaskThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
+import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ public class Downloader {
     @SuppressWarnings("all")
     public static void listenAndDownload(Deque<DownloadMeta> list, DownloadListener listener) {
         new Thread(() -> {
-            LOGGER.info("开始监听下载列表...");
+            LogUtils.info(LOGGER, "开始监听下载列表...");
             while (true) {
                 while (list.isEmpty()) {
                     // 每隔两秒检查一下下载线程
@@ -50,7 +51,7 @@ public class Downloader {
                     try {
                         String link = meta.getLink();
                         String fileName = meta.getFileName();
-                        LOGGER.info("监听到下载任务，文件名：{}，下载地址：{}", fileName, link);
+                        LogUtils.info(LOGGER, String.format("监听到下载任务，文件名：%s，下载地址：%s", fileName, link));
                         initActuator();
                         actuator.download(meta);
                         listener.completeOne();
@@ -58,7 +59,7 @@ public class Downloader {
                         if (e.getMessage().equals(UN_SUPPORT_MSG)) {
                             throw new RuntimeException("下载失败", e);
                         }
-                        LOGGER.error("文件下载失败，重新加入任务列表", e);
+                        LogUtils.error(LOGGER, "文件下载失败，重新加入任务列表：" + e.getMessage());
                         synchronized (Downloader.class) {
                             list.offerLast(meta);
                         }

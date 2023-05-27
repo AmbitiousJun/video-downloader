@@ -9,6 +9,7 @@ import com.ambitious.v2.constant.FileConstant;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.TsMeta;
 import com.ambitious.v2.util.HttpUtils;
+import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.M3U8Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +35,14 @@ public class M3U8SimpleActuator extends M3U8Actuator {
         while (!tsMetas.isEmpty()) {
             TsMeta tsMeta = tsMetas.pop();
             try {
-                LOGGER.info("请求 ts 文件中，当前进度：{} / {}，目标视频：{}", finish, size, meta.getFileName());
                 coreDownload(meta, tsMeta, tempDir);
-                finish++;
+                LogUtils.info(LOGGER, String.format("请求 ts 文件中，当前进度：%d / %d，目标视频：%s", ++finish, size, meta.getFileName()));
             } catch (Exception e) {
-                LOGGER.error("请求失败，重新加入到队列中，目标视频：{}", meta.getFileName());
+                LogUtils.error(LOGGER, String.format("请求失败，重新加入到队列中，目标视频：%s", meta.getFileName()));
                 tsMetas.offerLast(tsMeta);
             }
         }
-        LOGGER.info("ts 列表下载完成");
+        LogUtils.success(LOGGER, "ts 列表下载完成");
     }
 
 }

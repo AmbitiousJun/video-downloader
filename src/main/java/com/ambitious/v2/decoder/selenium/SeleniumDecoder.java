@@ -1,6 +1,7 @@
 package com.ambitious.v2.decoder.selenium;
 
 import com.ambitious.v2.config.Config;
+import com.ambitious.v2.util.LogUtils;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
@@ -57,7 +58,7 @@ public abstract class SeleniumDecoder implements Closeable {
                 this.driver = null;
             }
         } catch (Exception e) {
-            logger.warn("ChromeDriver 关闭异常", e);
+            LogUtils.warning(logger, "ChromeDriver 关闭异常：" + e.getMessage());
         }
     }
 
@@ -72,7 +73,7 @@ public abstract class SeleniumDecoder implements Closeable {
      */
     private void init(PageLoadStrategy strategy, boolean useProxy) {
         try {
-            logger.info("正在初始化 Chrome 客户端...");
+            LogUtils.info(logger, "正在初始化 Chrome 客户端...");
             // 配置Chrome浏览器
             ChromeOptions options = new ChromeOptions();
             options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
@@ -92,9 +93,9 @@ public abstract class SeleniumDecoder implements Closeable {
             // 设置ChromeDriver路径
             System.setProperty("webdriver.chrome.driver", Config.SELENIUM.CHROME_DRIVER_PATH);
             this.driver = new ChromeDriver(options);
-            logger.info("Chrome 客户端初始化成功");
+            LogUtils.success(logger, "Chrome 客户端初始化成功");
         } catch (Exception e) {
-            logger.error("Chrome 客户端初始化失败", e);
+            LogUtils.error(logger, "Chrome 客户端初始化失败：" + e.getMessage());
             System.exit(-1);
         }
     }

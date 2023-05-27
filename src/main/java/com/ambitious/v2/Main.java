@@ -6,6 +6,7 @@ import com.ambitious.v2.decoder.Decoder;
 import com.ambitious.v2.downloader.Downloader;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.VideoMeta;
+import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class Main {
         readVideoData();
         int size = DECODE_LIST.size();
         if (size == 0) {
-            LOGGER.info("解析列表为空，程序停止");
+            LogUtils.info(LOGGER, "解析列表为空，程序停止");
             return;
         }
         // 3 开启解析任务
@@ -49,10 +50,10 @@ public class Main {
         CountDownLatch latch = new CountDownLatch(size);
         Downloader.listenAndDownload(DOWNLOAD_LIST, () -> {
             latch.countDown();
-            LOGGER.info("一个文件下载完成，剩下：{} 个", latch.getCount());
+            LogUtils.success(LOGGER, String.format("一个文件下载完成，剩下：%d 个", latch.getCount()));
         });
         latch.await();
-        LOGGER.info("所有任务处理完成");
+        LogUtils.success(LOGGER, "所有任务处理完成");
         System.exit(0);
     }
 
@@ -60,7 +61,7 @@ public class Main {
      * 读取需要下载的视频源数据文件
      */
     public static void readVideoData() {
-        LOGGER.info("正在读取源数据文件 data.txt...");
+        LogUtils.info(LOGGER, "正在读取源数据文件 data.txt...");
         // 1 将文件 data.txt 读取成字符输入流
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get("config/data.txt"))))) {
             // 2 依次读取每一行数据，实例化对象
@@ -80,7 +81,7 @@ public class Main {
             for (VideoMeta meta : DECODE_LIST) {
                 System.out.println(meta);
             }
-            LOGGER.info("读取完成！");
+            LogUtils.success(LOGGER, "读取完成！");
         } catch (Exception e) {
             throw new RuntimeException("读取源数据文件失败", e);
         }

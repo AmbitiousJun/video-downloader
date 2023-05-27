@@ -3,6 +3,7 @@ package com.ambitious.v2.downloader.actuator;
 import cn.hutool.core.io.StreamProgress;
 import cn.hutool.http.HttpUtil;
 import com.ambitious.v2.pojo.DownloadMeta;
+import com.ambitious.v2.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class Mp4SimpleActuator implements DownloadActuator{
 
             @Override
             public void start() {
-                LOGGER.info("开始下载，文件名：{}", fileName);
+                LogUtils.info(LOGGER, String.format("开始下载，文件名：%d", fileName));
             }
 
             @Override
@@ -50,19 +51,19 @@ public class Mp4SimpleActuator implements DownloadActuator{
                     return;
                 }
                 if (total == -1) {
-                    LOGGER.info("下载进度：{}，文件名：{}", progressSize, fileName);
+                    LogUtils.info(LOGGER, String.format("下载进度：%s，文件名：%s", progressSize, fileName));
                 } else {
                     BigDecimal tt = new BigDecimal(total);
                     BigDecimal ps = new BigDecimal(progressSize);
                     BigDecimal percent = ps.divide(tt, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-                    LOGGER.info("下载进度：{}%，文件名：{}", percent, fileName);
+                    LogUtils.info(LOGGER, String.format("下载进度：{}%，文件名：{}", percent, fileName));
                 }
                 progressTipFlag.set(false);
             }
 
             @Override
             public void finish() {
-                LOGGER.info("下载完成，文件名：{}", fileName);
+                LogUtils.success(LOGGER, String.format("下载完成，文件名：%s", fileName));
                 timer.cancel();
             }
         });

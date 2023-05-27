@@ -8,6 +8,7 @@ import com.ambitious.v2.constant.DownloaderType;
 import com.ambitious.v2.constant.MediaType;
 import com.ambitious.v2.constant.TransferType;
 import com.ambitious.v2.util.CastUtils;
+import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +39,14 @@ public class Config {
 
     static {
         try {
-            LOGGER.info("正在加载配置...");
+            LogUtils.info(LOGGER, "正在加载配置...");
             // 加载配置
             Map<String, Object> c = loadConfigMap();
             SELENIUM = readSeleniumConfig(CastUtils.cast(c.get("selenium")));
             DOWNLOADER = readDownloaderConfig(CastUtils.cast(c.get("downloader")));
             TRANSFER = readTransferConfig(CastUtils.cast(c.get("transfer")));
             DECODER = readDecoderConfig(CastUtils.cast(c.get("decoder")));
-            LOGGER.info("配置加载完成");
+            LogUtils.success(LOGGER, "配置加载完成");
         } catch (Exception e) {
             throw new RuntimeException("加载配置文件异常", e);
         }

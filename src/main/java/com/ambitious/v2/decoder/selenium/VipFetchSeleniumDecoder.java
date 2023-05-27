@@ -5,6 +5,7 @@ import com.ambitious.v2.config.Config;
 import com.ambitious.v2.constant.MediaType;
 import com.ambitious.v2.constant.VideoSite;
 import com.ambitious.v2.util.FileUtils;
+import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Lists;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.PageLoadStrategy;
@@ -36,22 +37,22 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
     @Override
     public String fetchDownloadLink(String fetchUrl) {
         try {
-            logger.info("检查 Chrome 客户端是否初始化...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.info(logger, String.format("检查 Chrome 客户端是否初始化...,%s", formatLogSuffix(fetchUrl)));
             if (super.driver == null) {
                 throw new RuntimeException("Chrome 客户端未初始化");
             }
-            logger.info("Chrome 客户端初始化完成,{}", formatLogSuffix(fetchUrl));
-            logger.info("选择视频网站初始化器...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("Chrome 客户端初始化完成,%s", formatLogSuffix(fetchUrl)));
+            LogUtils.info(logger, String.format("选择视频网站初始化器...,%s", formatLogSuffix(fetchUrl)));
             // 选择一个网站初始化器
             selectSiteInitializer();
-            logger.info("视频网站初始化器选择完成...,{}", formatLogSuffix(fetchUrl));
-            logger.info("正在初始化视频网站...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("视频网站初始化器选择完成...,%s", formatLogSuffix(fetchUrl)));
+            LogUtils.info(logger, String.format("正在初始化视频网站...,%s", formatLogSuffix(fetchUrl)));
             this.siteInitializer.init(fetchUrl);
-            logger.info("视频网站初始化完成,{}", formatLogSuffix(fetchUrl));
-            logger.info("正在将资源嗅探脚本注入到网页中...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("视频网站初始化完成,%s", formatLogSuffix(fetchUrl)));
+            LogUtils.info(logger, String.format("正在将资源嗅探脚本注入到网页中...,%s", formatLogSuffix(fetchUrl)));
             // 注入资源嗅探脚本
             injectMediaFetchScript();
-            logger.info("脚本注入完成...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("脚本注入完成...,%s", formatLogSuffix(fetchUrl)));
             if (!driver.getCurrentUrl().startsWith("blob:")) {
                 throw new RuntimeException("资源嗅探失败");
             }
@@ -63,14 +64,14 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
             if (pIdx == -1 || sIdx == -1) {
                 throw new RuntimeException("资源嗅探失败");
             }
-            logger.info("资源嗅探成功，正在将 M3U8 文件保存到本地...,{}", formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("资源嗅探成功，正在将 M3U8 文件保存到本地...,%s", formatLogSuffix(fetchUrl)));
             m3u8 = m3u8.substring(pIdx, sIdx + suffix.length());
             String path = Config.DOWNLOADER.DOWNLOAD_DIR + "/" + MediaType.M3U8;
             String filename = IdUtil.randomUUID() + "." + MediaType.M3U8;
             String finalPath = path + "/" + filename;
             FileUtils.initFileDirs(finalPath);
             Files.write(Paths.get(finalPath), m3u8.getBytes(StandardCharsets.UTF_8));
-            logger.info("M3U8 文件已保存，路径：{},{}", finalPath, formatLogSuffix(fetchUrl));
+            LogUtils.success(logger, String.format("M3U8 文件已保存，路径：%s,%s", finalPath, formatLogSuffix(fetchUrl)));
             return "file://" + finalPath;
         } catch (Exception e) {
             throw new RuntimeException("获取视频下载链接失败", e);
@@ -99,7 +100,7 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
                 if (this.siteInitializer == null) {
                     String use = Config.DECODER.VIP_FETCH.USE;
                     if (VideoSite.QY.equals(use)) {
-                        logger.info("选择爱奇艺初始化器");
+                        LogUtils.info(logger, "选择爱奇艺初始化器");
                         this.siteInitializer = new QyInitializer(driver, getCookies());
                     } else {
                         // TODO 等到其他的初始化器实现之后，再来补全这段逻辑
@@ -109,7 +110,7 @@ public class VipFetchSeleniumDecoder extends SeleniumDecoder{
             }
             return;
         }
-        logger.info("初始化器已存在");
+        LogUtils.info(logger, "初始化器已存在");
     }
 
     private List<Cookie> getCookies() {
