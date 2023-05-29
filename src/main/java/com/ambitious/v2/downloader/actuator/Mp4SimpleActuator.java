@@ -42,7 +42,7 @@ public class Mp4SimpleActuator implements DownloadActuator{
 
             @Override
             public void start() {
-                LogUtils.info(LOGGER, String.format("开始下载，文件名：%d", fileName));
+                LogUtils.info(LOGGER, String.format("开始下载，文件名：%s", fileName));
             }
 
             @Override
