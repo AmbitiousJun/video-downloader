@@ -51,12 +51,12 @@ public class Mp4SimpleActuator implements DownloadActuator{
                     return;
                 }
                 if (total == -1) {
-                    LogUtils.info(LOGGER, String.format("下载进度：%s，文件名：%s", progressSize, fileName));
+                    LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", progressSize, fileName));
                 } else {
                     BigDecimal tt = new BigDecimal(total);
                     BigDecimal ps = new BigDecimal(progressSize);
                     BigDecimal percent = ps.divide(tt, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-                    LogUtils.info(LOGGER, String.format("下载进度：{}%，文件名：{}", percent, fileName));
+                    LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", percent, fileName));
                 }
                 progressTipFlag.set(false);
             }
