@@ -28,13 +28,18 @@ public class Downloader {
     private static final Logger LOGGER = LoggerFactory.getLogger(Downloader.class);
     private volatile static DownloadActuator actuator;
     private static final String UN_SUPPORT_MSG = "不支持的下载方式";
+    private static final String M3U8_ERROR = "不是规范的 m3u8 文件";
 
     /**
      * 监听任务列表并下载
      * @param list 下载任务列表
      */
     @SuppressWarnings("all")
-    public static void listenAndDownload(Deque<DownloadMeta> list, DownloadListener listener) {
+    public static void listenAndDownload(
+        Deque<DownloadMeta> list,
+        DownloadListener listener,
+        DownloadErrorListener errorListener
+    ) {
         new Thread(() -> {
             LogUtils.info(LOGGER, "开始监听下载列表...");
             while (true) {
@@ -48,20 +53,28 @@ public class Downloader {
                 }
                 final DownloadMeta meta = list.pop();
                 DownloadTaskThreadPool.submit(() -> {
+                    String originFileName = meta.getFileName();
                     try {
                         String link = meta.getLink();
-                        String fileName = meta.getFileName();
+                        String fileName = Config.DOWNLOADER.DOWNLOAD_DIR + "/" + originFileName + ".mp4";
+                        meta.setFileName(fileName);
                         LogUtils.info(LOGGER, String.format("监听到下载任务，文件名：%s，下载地址：%s", fileName, link));
                         initActuator();
                         actuator.download(meta);
                         listener.completeOne();
                     } catch (Exception e) {
+                        meta.setFileName(originFileName);
                         if (e.getMessage().equals(UN_SUPPORT_MSG)) {
                             throw new RuntimeException("下载失败", e);
-                        }
-                        LogUtils.error(LOGGER, "文件下载失败，重新加入任务列表：" + e.getMessage());
-                        synchronized (Downloader.class) {
-                            list.offerLast(meta);
+                        } else if (e.getMessage().equals(M3U8_ERROR)) {
+                            // m3u8 文件无法正常解析
+                            errorListener.emit(meta);
+                            LogUtils.warning(LOGGER, "重新添加到解析任务中。视频名称：" + meta.getFileName());
+                        } else {
+                            LogUtils.error(LOGGER, "文件下载失败，重新加入任务列表：" + e.getMessage());
+                            synchronized (Downloader.class) {
+                                list.offerLast(meta);
+                            }
                         }
                     }
                 });

@@ -66,7 +66,7 @@ public class App3 {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // 1 解析原抓包文件
-        String text = readFileAsString(ORIGIN + "/测试.txt");
+        String text = readFileAsString(ORIGIN + "/古宅风云1.m3u8");
         String urlRegex = "(?<=GET ).*?(?= HTTP/1\\.1)";
         String hostRegex = "(?<=Host: ).*?(?=\\\\r\\\\n)";
         String rangeRegex = "(?<=Range: ).*?(?=\\\\r\\\\n)";
@@ -77,7 +77,7 @@ public class App3 {
         for (int i = 0; i < ranges.size(); i++) {
             filterSet.add("http://" + hosts.get(i) + urls.get(i) + ";" + ranges.get(i));
         }
-        File dest = new File(DOWNLOAD_URL + "/测试.mp4");
+        File dest = new File(DOWNLOAD_URL + "/2020-08-06.古宅风云1.mp4");
         // 2 将解析结果封装成对象
         // 3 将分片列表按照 Range 从小到大进行排序
         List<FileUnit> units = filterSet.stream().map(link -> {

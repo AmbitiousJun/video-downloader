@@ -56,7 +56,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             BigDecimal totalSize = new BigDecimal(fileTotalSize.get());
             // 2 计算百分比
             BigDecimal percent = curSize.divide(totalSize, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-            LogUtils.info(LOGGER, String.format("下载进度：%s%，文件名：%s", percent, fileName));
+            LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", percent, fileName));
             if (curSize.compareTo(totalSize) >= 0) {
                 // 文件已经下载完成
                 timer.cancel();

@@ -1,5 +1,6 @@
 package com.ambitious.test;
 
+import com.ambitious.v2.config.Config;
 import com.google.common.collect.Lists;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
@@ -17,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 测试通过 Selenium 注入 Cookie 实现自动登录，注入 JS 拦截请求
@@ -33,19 +35,19 @@ public class App2 {
             options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
             options.setAcceptInsecureCerts(true);
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
-            options.addArguments("--headless");
+            // options.addArguments("--headless");
 
             // 设置ChromeDriver路径
             System.setProperty("webdriver.chrome.driver", "/Users/ambitious/App/chromedriver_mac_arm64/chromedriver");
 
             driver = new ChromeDriver(options);
 
-            final String url = "https://www.iqiyi.com/v_w88mp5oj5g.html?vfrm=pcw_home&vfrmblk=712211_cainizaizhui&vfrmrst=712211_cainizaizhui_image1&r_area=pcw_rec_like&r_source=216%40301%40103%401032&bkt=tpfsfallrerank_02%3Btpfsfallrank_07%3Btp_fsfall_prerank_02&e=60adc871dfdaed36ba948f3f22d1a6f7&stype=2";
+            final String url = "https://v.qq.com";
 
             driver.get(url);
 
             // 设置 Cookie
-            List<Cookie> cookies = getQiYiCookies();
+            List<Cookie> cookies = getTxCookies();
             for (Cookie cookie : cookies) {
                 driver.manage().addCookie(cookie);
             }
@@ -55,42 +57,44 @@ public class App2 {
             Thread.sleep(10000);
             driver.navigate().refresh();
 
-            // 将分辨率切换至 1080p
-            Thread.sleep(10000);
-            // 弹出清晰度选择框
-            WebElement panel = driver.findElement(By.cssSelector("iqpdiv[data-player-hook='definitionPanel']"));
-            String script = "arguments[0].setAttribute('style', 'display: block')";
-            driver.executeScript(script, panel);
-            // 获取 1080P 按钮并点击
-            Actions actions = new Actions(driver);
-            WebElement btn = driver.findElement(By.cssSelector("iqp[class='iqp-txt-stream'][data-player-hook='5']"));
-            actions.moveToElement(btn).click().perform();
+            if (1 == 0) {
+                // 将分辨率切换至 1080p
+                Thread.sleep(10000);
+                // 弹出清晰度选择框
+                WebElement panel = driver.findElement(By.cssSelector("iqpdiv[data-player-hook='definitionPanel']"));
+                String script = "arguments[0].setAttribute('style', 'display: block')";
+                driver.executeScript(script, panel);
+                // 获取 1080P 按钮并点击
+                Actions actions = new Actions(driver);
+                WebElement btn = driver.findElement(By.cssSelector("iqp[class='iqp-txt-stream'][data-player-hook='5']"));
+                actions.moveToElement(btn).click().perform();
 
-            // 等待清晰度切换完成
-            Thread.sleep(20000);
+                // 等待清晰度切换完成
+                Thread.sleep(20000);
 
-            // 注入资源嗅探脚本
-            script = readScript(new File("media-fetch.js"));
-            driver.executeScript("location.href = '" + url + "'");
-            driver.executeScript(script);
+                // 注入资源嗅探脚本
+                script = readScript(new File("media-fetch.js"));
+                driver.executeScript("location.href = '" + url + "'");
+                driver.executeScript(script);
 
-            // 等待 10 秒之后判断是否嗅探成功
-            Thread.sleep(10000);
-            if (!driver.getCurrentUrl().startsWith("blob:")) {
-                throw new RuntimeException("资源嗅探失败");
+                // 等待 10 秒之后判断是否嗅探成功
+                Thread.sleep(10000);
+                if (!driver.getCurrentUrl().startsWith("blob:")) {
+                    throw new RuntimeException("资源嗅探失败");
+                }
+
+                // 将 m3u8 文件保存到本地
+                String m3u8 = driver.getPageSource();
+                String prefix = "#EXTM3U";
+                String suffix = "#EXT-X-ENDLIST";
+                int pIdx = m3u8.indexOf(prefix);
+                int sIdx = m3u8.indexOf(suffix);
+                if (pIdx == -1 || sIdx == -1) {
+                    throw new RuntimeException("资源嗅探失败");
+                }
+                m3u8 = m3u8.substring(pIdx, sIdx + suffix.length());
+                Files.write(Paths.get("/Users/ambitious/Downloads/测试.m3u8"), m3u8.getBytes(StandardCharsets.UTF_8));
             }
-
-            // 将 m3u8 文件保存到本地
-            String m3u8 = driver.getPageSource();
-            String prefix = "#EXTM3U";
-            String suffix = "#EXT-X-ENDLIST";
-            int pIdx = m3u8.indexOf(prefix);
-            int sIdx = m3u8.indexOf(suffix);
-            if (pIdx == -1 || sIdx == -1) {
-                throw new RuntimeException("资源嗅探失败");
-            }
-            m3u8 = m3u8.substring(pIdx, sIdx + suffix.length());
-            Files.write(Paths.get("/Users/ambitious/Downloads/测试.m3u8"), m3u8.getBytes(StandardCharsets.UTF_8));
 
         } finally {
             if (driver != null) {
@@ -98,6 +102,16 @@ public class App2 {
                 driver.quit();
             }
         }
+    }
+
+    private static List<Cookie> getTxCookies() {
+        final String domain = ".v.qq.com";
+        Map<String, String> cookies = Config.DECODER.VIP_FETCH.COOKIES;
+        List<Cookie> res = Lists.newArrayList();
+        for (String key : cookies.keySet()) {
+            res.add(new Cookie(key, cookies.get(key), domain, "/", new Date(System.currentTimeMillis() + 1000 * 3600 * 24 * 7)));
+        }
+        return res;
     }
 
     private static List<Cookie> getQiYiCookies() {

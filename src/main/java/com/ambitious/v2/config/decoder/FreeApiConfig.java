@@ -29,7 +29,9 @@ public class FreeApiConfig {
             Map<String, String> apiMap = Maps.newHashMap();
             for (String s : apis) {
                 String[] ss = s.split(",");
-                if (ss.length != 2) {
+                if (ss.length == 1) {
+                    ss = new String[] { ss[0], "" };
+                } else if (ss.length > 2) {
                     throw new RuntimeException("接口格式：name,url");
                 }
                 apiMap.put(ss[0], ss[1]);

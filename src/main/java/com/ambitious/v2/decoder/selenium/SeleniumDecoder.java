@@ -9,6 +9,7 @@ import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * 使用 Selenium 实现视频解析
@@ -79,6 +82,7 @@ public abstract class SeleniumDecoder implements Closeable {
             options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
             options.setPageLoadStrategy(strategy);
             options.setAcceptInsecureCerts(true);
+            options.setCapability("chrome.switches", Collections.singletonList("--ignore-certificate-errors"));
             if (!Config.SELENIUM.SHOW_WINDOW) {
                 // 不开启 GUI 界面，在后台运行浏览器
                 options.addArguments("--headless");
@@ -86,6 +90,7 @@ public abstract class SeleniumDecoder implements Closeable {
             if (useProxy) {
                 // 开启代理
                 this.proxy = new BrowserMobProxyServer();
+                proxy.setTrustAllServers(true);
                 proxy.start(0, InetAddress.getLocalHost());
                 Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
                 options.setCapability(CapabilityType.PROXY, seleniumProxy);

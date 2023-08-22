@@ -1,5 +1,6 @@
 package com.ambitious.v2.decoder;
 
+import cn.hutool.core.util.StrUtil;
 import com.ambitious.v2.config.Config;
 import com.ambitious.v2.config.decoder.FreeApiConfig;
 import com.ambitious.v2.constant.DecoderType;
@@ -32,16 +33,9 @@ public class Decoder {
     public static void listenAndDecode(Deque<VideoMeta> list, DecodeListener listener) {
         new Thread(() -> {
             LogUtils.info(LOGGER, "开始监听解析列表");
-            int size = list.size();
-            final AtomicInteger finish = new AtomicInteger(0);
             try {
-            out:
                 while (true) {
                     while (list.size() == 0) {
-                        if (finish.get() == size) {
-                            LogUtils.success(LOGGER, "所有任务解析完成，请耐心等待下载结束");
-                            break out;
-                        }
                         try {
                             Thread.sleep(2000);
                         } catch (InterruptedException e) {
@@ -52,30 +46,27 @@ public class Decoder {
                     VideoMeta meta = list.pop();
                     String name = meta.getName();
                     String url = meta.getUrl();
-                    String fileName = Config.DOWNLOADER.DOWNLOAD_DIR + "/" + name + ".mp4";
                     LogUtils.info(LOGGER, String.format("检测到解析任务，标题：%s，源地址：%s", name, url));
                     // 2 判断解析类型
                     DecoderType use = Config.DECODER.USE;
                     try {
                         if (DecoderType.NONE.equals(use)) {
                             // 不需要解析，url 直接就是下载链接
-                            listener.newDecodeUrl(new DownloadMeta(url, fileName));
+                            listener.newDecodeUrl(new DownloadMeta(url, name, meta.getUrl()));
                             continue;
                         }
                         if (DecoderType.FREE_API.equals(use)) {
                             if (decoder == null) {
                                 decoder = new FreeApiSeleniumDecoder();
                             }
-                            listener.newDecodeUrl(useFreeApiDecode(meta, fileName));
+                            listener.newDecodeUrl(useFreeApiDecode(meta, name));
                         }
                         if (DecoderType.VIP_FETCH.equals(use)) {
                             if (decoder == null) {
                                 decoder = new VipFetchSeleniumDecoder();
                             }
-                            listener.newDecodeUrl(useVipFetchDecode(meta, fileName));
+                            listener.newDecodeUrl(useVipFetchDecode(meta, name));
                         }
-                        int current = finish.incrementAndGet();
-                        LogUtils.success(LOGGER, String.format("已解析完成视频数：%d，剩余：%d", current, size - current));
                     } catch (Exception e) {
                         LogUtils.error(LOGGER, "视频下载地址解析失败：" + e.getMessage() + "，重新加入任务列表");
                         list.offerLast(meta);
@@ -105,7 +96,7 @@ public class Decoder {
         String link = decoder.fetchDownloadLink(meta.getUrl());
         LogUtils.success(LOGGER, String.format("解析成功，已添加到下载列表，文件名：%s，下载地址：%s", fileName, link));
         // 添加到下载列表
-        return new DownloadMeta(link, fileName);
+        return new DownloadMeta(link, fileName, meta.getUrl());
     }
 
     /**
@@ -121,10 +112,12 @@ public class Decoder {
         String finalUrl = baseUrl + meta.getUrl();
         String link = decoder.fetchDownloadLink(finalUrl);
         Map<String, String> headerMap = Maps.newHashMap();
-        headerMap.put("origin", baseUrl.substring(0, baseUrl.substring(8).indexOf("/") + 8));
-        headerMap.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+        if (StrUtil.isNotEmpty(baseUrl)) {
+            headerMap.put("origin", baseUrl.substring(0, baseUrl.substring(8).indexOf("/") + 8));
+            headerMap.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36");
+        }
         LogUtils.success(LOGGER, String.format("解析成功，已添加到下载列表，文件名：%s，下载地址：%s", fileName, link));
         // 添加到下载列表
-        return new DownloadMeta(link, fileName, headerMap);
+        return new DownloadMeta(link, fileName, meta.getUrl(), headerMap);
     }
 }

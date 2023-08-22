@@ -51,6 +51,12 @@ public class Main {
         Downloader.listenAndDownload(DOWNLOAD_LIST, () -> {
             latch.countDown();
             LogUtils.success(LOGGER, String.format("一个文件下载完成，剩下：%d 个", latch.getCount()));
+        }, (downloadMeta) -> {
+            // 下载器判断出无法正常下载的视频，重新加入到解析列表中
+            String fileName = downloadMeta.getFileName();
+            String originUrl = downloadMeta.getOriginUrl();
+            VideoMeta meta = new VideoMeta(fileName, originUrl);
+            DECODE_LIST.offerLast(meta);
         });
         latch.await();
         LogUtils.success(LOGGER, "所有任务处理完成");
