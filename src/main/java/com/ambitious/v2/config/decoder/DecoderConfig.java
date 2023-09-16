@@ -19,6 +19,7 @@ public class DecoderConfig {
     public final DecoderType USE;
     public final MediaType RESOURCE_TYPE;
     public final Integer THREAD_COUNT;
+    public final YoutubeDlConfig YOUTUBE_DL;
     public final FreeApiConfig FREE_API;
     public final VipFetchConfig VIP_FETCH;
 
@@ -26,6 +27,7 @@ public class DecoderConfig {
         this.USE = use == null ? DecoderType.NONE : use;
         this.RESOURCE_TYPE = resourceType;
         this.THREAD_COUNT = threadCount < 0 ? 1 : threadCount;
+        this.YOUTUBE_DL = DecoderType.YOUTUBE_DL.equals(this.USE) ? new YoutubeDlConfig(CastUtils.cast(c.get("youtube-dl"))) : null;
         this.FREE_API = DecoderType.FREE_API.equals(this.USE) ? new FreeApiConfig(CastUtils.cast(c.get("free-api"))) : null;
         this.VIP_FETCH = DecoderType.VIP_FETCH.equals(this.USE) ? new VipFetchConfig(CastUtils.cast(c.get("vip-fetch"))) : null;
     }

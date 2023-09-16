@@ -7,17 +7,20 @@ import com.ambitious.v2.constant.DecoderType;
 import com.ambitious.v2.decoder.selenium.FreeApiSeleniumDecoder;
 import com.ambitious.v2.decoder.selenium.SeleniumDecoder;
 import com.ambitious.v2.decoder.selenium.VipFetchSeleniumDecoder;
+import com.ambitious.v2.decoder.ytdl.YtDlDecoder;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.VideoMeta;
+import com.ambitious.v2.pojo.YtDlDownloadMeta;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 负责将源数据文件解析成 可下载的 URL
@@ -36,11 +39,7 @@ public class Decoder {
             try {
                 while (true) {
                     while (list.size() == 0) {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                        SleepUtils.sleep(2000);
                     }
                     // 1 获取链接地址
                     VideoMeta meta = list.pop();
@@ -53,15 +52,14 @@ public class Decoder {
                         if (DecoderType.NONE.equals(use)) {
                             // 不需要解析，url 直接就是下载链接
                             listener.newDecodeUrl(new DownloadMeta(url, name, meta.getUrl()));
-                            continue;
-                        }
-                        if (DecoderType.FREE_API.equals(use)) {
+                        } else if (DecoderType.YOUTUBE_DL.equals(use)) {
+                            listener.newDecodeUrl(useYoutubeDlDecode(meta));
+                        } else if (DecoderType.FREE_API.equals(use)) {
                             if (decoder == null) {
                                 decoder = new FreeApiSeleniumDecoder();
                             }
                             listener.newDecodeUrl(useFreeApiDecode(meta, name));
-                        }
-                        if (DecoderType.VIP_FETCH.equals(use)) {
+                        } else if (DecoderType.VIP_FETCH.equals(use)) {
                             if (decoder == null) {
                                 decoder = new VipFetchSeleniumDecoder();
                             }
@@ -83,6 +81,18 @@ public class Decoder {
                 }
             }
         }, "t-decode-listening").start();
+    }
+
+    /**
+     * 使用 youtube-dl 进行解析
+     * @param meta 视频信息
+     * @return 下载相关信息
+     */
+    private static DownloadMeta useYoutubeDlDecode(VideoMeta meta) {
+        LogUtils.info(LOGGER, String.format("开始解析视频，标题：%s, 源地址：%s", meta.getName(), meta.getUrl()));
+        List<String> links = YtDlDecoder.fetchDownloadLinks(meta.getUrl());
+        LogUtils.success(LOGGER, String.format("解析成功，已添加到下载列表，文件名：%s，下载地址：%s", meta.getName(), links));
+        return new YtDlDownloadMeta(links, meta.getName(), meta.getUrl()).toDownloadMeta();
     }
 
     /**

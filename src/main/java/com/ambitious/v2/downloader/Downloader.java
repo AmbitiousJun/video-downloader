@@ -1,16 +1,15 @@
 package com.ambitious.v2.downloader;
 
 import com.ambitious.v2.config.Config;
+import com.ambitious.v2.constant.DecoderType;
 import com.ambitious.v2.constant.DownloaderType;
 import com.ambitious.v2.constant.MediaType;
-import com.ambitious.v2.downloader.actuator.DownloadActuator;
-import com.ambitious.v2.downloader.actuator.M3U8MultiThreadActuator;
-import com.ambitious.v2.downloader.actuator.M3U8SimpleActuator;
-import com.ambitious.v2.downloader.actuator.Mp4SimpleActuator;
+import com.ambitious.v2.downloader.actuator.*;
 import com.ambitious.v2.downloader.actuator.mp4multithread.Mp4MultiThreadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadTaskThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +44,7 @@ public class Downloader {
             while (true) {
                 while (list.isEmpty()) {
                     // 每隔两秒检查一下下载线程
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    SleepUtils.sleep(2000);
                 }
                 final DownloadMeta meta = list.pop();
                 DownloadTaskThreadPool.submit(() -> {
@@ -91,6 +86,10 @@ public class Downloader {
         }
         synchronized (Downloader.class) {
             if (actuator != null) {
+                return;
+            }
+            if (Config.DECODER.USE.equals(DecoderType.YOUTUBE_DL)) {
+                actuator = new YtDlActuator();
                 return;
             }
             MediaType rt = Config.DECODER.RESOURCE_TYPE;

@@ -4,6 +4,7 @@ import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.TsMeta;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public class M3U8MultiThreadActuator extends M3U8Actuator {
         while (finish.get() < size) {
             if (tsMetas.isEmpty()) {
                 // 可能会有下载失败的 ts 文件，先阻塞两秒
-                Thread.sleep(2000);
+                SleepUtils.sleep(2000);
                 continue;
             }
             TsMeta tsMeta = tsMetas.pop();

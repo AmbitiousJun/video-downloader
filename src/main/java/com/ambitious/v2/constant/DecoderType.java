@@ -8,9 +8,10 @@ package com.ambitious.v2.constant;
 public enum DecoderType {
 
     /**
-     * none, free-api, vip-fetch
+     * none, free-api, vip-fetch, youtube-dl
      */
     NONE("none"),
+    YOUTUBE_DL("youtube-dl"),
     FREE_API("free-api"),
     VIP_FETCH("vip-fetch")
     ;
