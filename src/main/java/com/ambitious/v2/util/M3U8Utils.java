@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Deque;
 import java.util.Map;
@@ -50,6 +52,37 @@ public class M3U8Utils {
     }
 
     /**
+     * 检查一个 url 是否是一个 M3U8 链接，可以是网络链接也可以是本地文件
+     * @param url 要检查的链接
+     * @return 检查是否通过
+     */
+    public static boolean checkM3U8(String url) {
+        if (StrUtil.isEmpty(url)) {
+            return false;
+        }
+        int retryTime = 3;
+        int currentTry = 0;
+        while (currentTry < retryTime) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
+                String firstLine = reader.readLine();
+                if (StrUtil.isEmpty(firstLine)) {
+                    return false;
+                }
+                String valid = "#EXTM3U";
+                firstLine = firstLine.substring(0, Math.min(valid.length(), firstLine.length()));
+                return firstLine.equalsIgnoreCase(valid);
+            } catch (IOException e) {
+                // 有可能是网络连接异常，触发重试机制
+                currentTry++;
+                SleepUtils.sleep(1000);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 读取 M3U8 文件中的 ts 文件列表
      * @param m3u8Url m3u8 文件的下载地址
      * @param headerMap 请求头，可以为空
@@ -63,7 +96,7 @@ public class M3U8Utils {
         File file = new File(m3u8Url.substring(7));
         while (!file.exists()) {
             LOGGER.info("查找不到本地的 m3u8 文件：{}", m3u8Url);
-            Thread.sleep(1000);
+            SleepUtils.sleep(1000);
         }
         // 1 读取 m3u8 文件
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(m3u8Url).openStream()))) {
@@ -101,8 +134,11 @@ public class M3U8Utils {
      * @return ts urls
      */
     private static Deque<TsMeta> readHttpTsUrls(String m3u8Url, Map<String, String> headerMap) {
+        if (!checkM3U8(m3u8Url)) {
+            throw new RuntimeException("不是规范的 m3u8 文件");
+        }
         // 1 找到后缀的位置
-        int suffixPos = m3u8Url.indexOf("." + Config.DECODER.RESOURCE_TYPE.value);
+        int suffixPos = m3u8Url.indexOf(Config.DECODER.RESOURCE_TYPE.value);
         if (suffixPos == -1) {
             throw new RuntimeException("不是规范的 m3u8 文件");
         }
@@ -115,7 +151,7 @@ public class M3U8Utils {
             ) {
                 if (res.getStatus() == 429) {
                     LOGGER.info("请求 m3u8 文件失败：触发频繁请求，两秒后重试");
-                    Thread.sleep(2000);
+                    SleepUtils.sleep(2000);
                     continue;
                 }
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))) {

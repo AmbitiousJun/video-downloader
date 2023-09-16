@@ -20,17 +20,14 @@ import java.net.InetAddress;
 import java.util.List;
 
 /**
- * Hello world!
+ * 测试抓包
  *
  * @author ambitious
  */
-public class App {
-
-    public static final String BASE_URL = "http://jx.jsonplayer.com/player/?url=";
-    private static final Logger logger = LoggerFactory.getLogger(App.class);
+public class App6 {
 
     public static void main( String[] args ) throws IOException, InterruptedException {
-        String video = "https://v.qq.com/x/cover/mzc00200ynivua7/r00434mq14v.html";
+        String video = "http://tv.haoqu99.com/1/cctv1.html";
 
         // 启动BrowserMob Proxy
         BrowserMobProxy proxy = new BrowserMobProxyServer();
@@ -49,7 +46,7 @@ public class App {
         options.merge(capabilities);
         options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
         options.setAcceptInsecureCerts(true);
-        options.addArguments("--headless");
+        // options.addArguments("--headless");
 
         // 设置ChromeDriver路径
         System.setProperty("webdriver.chrome.driver", "/Users/ambitious/App/chromedriver_mac_arm64/chromedriver");
@@ -61,7 +58,7 @@ public class App {
         // proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
 
         // 导航到网页
-        driver.get(BASE_URL + video);
+        driver.get(video);
 
         // 等待视频加载完成
         Thread.sleep(15000);
