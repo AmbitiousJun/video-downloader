@@ -18,7 +18,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Deque;
 import java.util.Map;
@@ -54,16 +53,20 @@ public class M3U8Utils {
     /**
      * 检查一个 url 是否是一个 M3U8 链接，可以是网络链接也可以是本地文件
      * @param url 要检查的链接
+     * @param headerMap 请求头
      * @return 检查是否通过
      */
-    public static boolean checkM3U8(String url) {
+    public static boolean checkM3U8(String url, Map<String, String> headerMap) {
         if (StrUtil.isEmpty(url)) {
             return false;
         }
         int retryTime = 3;
         int currentTry = 0;
         while (currentTry < retryTime) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
+            try (
+                HttpResponse res = HttpRequest.get(url).addHeaders(headerMap).keepAlive(true).execute();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))
+            ) {
                 String firstLine = reader.readLine();
                 if (StrUtil.isEmpty(firstLine)) {
                     return false;
@@ -134,16 +137,14 @@ public class M3U8Utils {
      * @return ts urls
      */
     private static Deque<TsMeta> readHttpTsUrls(String m3u8Url, Map<String, String> headerMap) {
-        if (!checkM3U8(m3u8Url)) {
+        if (!checkM3U8(m3u8Url, headerMap)) {
             throw new RuntimeException("不是规范的 m3u8 文件");
         }
         // 1 找到后缀的位置
-        int suffixPos = m3u8Url.indexOf(Config.DECODER.RESOURCE_TYPE.value);
-        if (suffixPos == -1) {
-            throw new RuntimeException("不是规范的 m3u8 文件");
-        }
+        int queryPos = m3u8Url.indexOf("?");
+        queryPos = queryPos == -1 ? m3u8Url.length() : queryPos;
         // 2 找到后缀之前的第一个 '/'
-        int lastSepPos = m3u8Url.substring(0, suffixPos).lastIndexOf("/");
+        int lastSepPos = m3u8Url.substring(0, queryPos).lastIndexOf("/");
         String baseUrl = m3u8Url.substring(0, lastSepPos);
         // 1 读取 m3u8 文件
         while (true) {

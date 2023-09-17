@@ -12,7 +12,6 @@ import java.util.Map;
  * @date 2023/4/28
  */
 @Data
-@AllArgsConstructor
 public class DownloadMeta {
 
     private String link;
@@ -21,11 +20,14 @@ public class DownloadMeta {
     private Map<String, String> headerMap;
 
     public DownloadMeta(String link, String fileName, String originUrl) {
+        this(link, fileName, originUrl, null);
+    }
+
+    public DownloadMeta(String link, String fileName, String originUrl, Map<String, String> headerMap) {
         // 根据 link 添加默认的 Referer
-        Map<String, String> m = null;
+        Map<String, String> m = headerMap == null ? Maps.newHashMap() : headerMap;
         final String mg = "mgtv.com";
         if (link.contains(mg)) {
-            m = Maps.newHashMap();
             m.put("Referer", "https://" + mg);
         }
         this.link = link;

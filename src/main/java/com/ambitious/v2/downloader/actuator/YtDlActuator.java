@@ -50,7 +50,7 @@ public class YtDlActuator implements DownloadActuator{
             LogUtils.info(LOGGER, String.format("正在处理第 %d / %d 个子任务，文件名：%s", i + 1, size, ytDlMeta.getFileName()));
             String link = links.get(i);
             DownloadMeta tmpMeta = new DownloadMeta(link, ytDlMeta.getFileName().replace(".mp4", getPartSuffix(i)), ytDlMeta.getOriginUrl());
-            if (M3U8Utils.checkM3U8(link)) {
+            if (M3U8Utils.checkM3U8(link, ytDlMeta.getHeaderMap())) {
                 m3u8Actuator.download(tmpMeta);
             } else {
                 mp4Actuator.download(tmpMeta);
