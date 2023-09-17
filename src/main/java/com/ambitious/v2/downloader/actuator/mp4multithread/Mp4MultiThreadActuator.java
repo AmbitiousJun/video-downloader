@@ -33,7 +33,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
     /**
      * 分片数
      */
-    private static final int SPLIT_COUNT = Math.max(Config.DOWNLOADER.DL_THREAD_COUNT, 16);
+    private static final int SPLIT_COUNT = Math.min(Config.DOWNLOADER.DL_THREAD_COUNT, 16);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Mp4MultiThreadActuator.class);
 
