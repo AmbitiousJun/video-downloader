@@ -1,6 +1,7 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
 import com.ambitious.v1.downloader.MultiThreadManager;
+import com.ambitious.v2.config.Config;
 import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
@@ -31,7 +32,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
     /**
      * 分片数
      */
-    private static final int SPLIT_COUNT = 8;
+    private static final int SPLIT_COUNT = Math.max(Config.DOWNLOADER.DL_THREAD_COUNT, 16);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Mp4MultiThreadActuator.class);
 
