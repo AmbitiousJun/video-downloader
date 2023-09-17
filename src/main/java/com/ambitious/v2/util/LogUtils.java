@@ -19,14 +19,14 @@ public class LogUtils {
     }
 
     public static void success(Logger logger, String msg) {
-        logger.info(ANSI_SUCCESS + "\n" +msg + ANSI_RESET);
+        logger.info(ANSI_SUCCESS + "\n" + msg + ANSI_RESET);
     }
 
     public static void warning(Logger logger, String msg) {
-        logger.warn(ANSI_WARNING + "\n" +msg + ANSI_RESET);
+        logger.warn(ANSI_WARNING + "\n" + msg + ANSI_RESET);
     }
 
     public static void error(Logger logger, String msg) {
-        logger.error(ANSI_DANGER + "\n" +msg + ANSI_RESET);
+        logger.error(ANSI_DANGER + "\n" + msg + ANSI_RESET);
     }
 }
