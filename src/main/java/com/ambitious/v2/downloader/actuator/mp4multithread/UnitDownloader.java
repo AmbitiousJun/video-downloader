@@ -1,5 +1,9 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
+import com.ambitious.v2.util.LogUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -13,6 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 2023/4/29
  */
 public class UnitDownloader {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(UnitDownloader.class);
 
     /**
      * 分片起始字节
@@ -45,8 +51,7 @@ public class UnitDownloader {
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) new URL(this.url).openConnection();
-            conn.setRequestProperty("Range", String.format("bytes=%d-%d", this.from, this.to));
-            conn.connect();
+            conn.setRequestProperty("Range", String.format("bytes=%d-%s", this.from, this.to == -1 ? "" : this.to + ""));
             InputStream is = conn.getInputStream();
             try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
                 // 定位到文件中该分片的位置
@@ -62,6 +67,7 @@ public class UnitDownloader {
                 }
             }
         } catch (Exception e) {
+            LogUtils.warning(LOGGER, "分片下载失败：" + e.getMessage());
             throw new Exception("下载失败");
         } finally {
             if (conn != null) {

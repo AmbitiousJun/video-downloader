@@ -1,7 +1,5 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
-import com.ambitious.v1.downloader.MultiThreadManager;
-import com.ambitious.v2.config.Config;
 import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
@@ -30,12 +28,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Mp4MultiThreadActuator implements DownloadActuator {
 
-    /**
-     * 分片数
-     */
-    private static final int SPLIT_COUNT = Math.min(Config.DOWNLOADER.DL_THREAD_COUNT, 16);
-
     private static final Logger LOGGER = LoggerFactory.getLogger(Mp4MultiThreadActuator.class);
+
+    private static final Integer SPLIT_COUNT = 64;
 
     @Override
     @SuppressWarnings("all")
@@ -50,21 +45,22 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-            if (!dest.exists() || fileTotalSize.get() == 0) {
-                return;
+                if (!dest.exists() || fileTotalSize.get() == 0) {
+                    return;
+                }
+                // 1 获取文件当前大小
+                BigDecimal curSize = new BigDecimal(fileCurSize.get());
+                BigDecimal totalSize = new BigDecimal(fileTotalSize.get());
+                if (curSize.compareTo(totalSize) >= 0) {
+                    // 文件已经下载完成
+                    timer.cancel();
+                    return;
+                }
+                // 2 计算百分比
+                BigDecimal percent = curSize.divide(totalSize, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
+                LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", percent, fileName));
             }
-            // 1 获取文件当前大小
-            BigDecimal curSize = new BigDecimal(fileCurSize.get());
-            BigDecimal totalSize = new BigDecimal(fileTotalSize.get());
-            // 2 计算百分比
-            BigDecimal percent = curSize.divide(totalSize, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-            LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", percent, fileName));
-            if (curSize.compareTo(totalSize) >= 0) {
-                // 文件已经下载完成
-                timer.cancel();
-            }
-            }
-        }, 0, 10000);
+        }, 0, 5000);
 
         LogUtils.info(LOGGER, String.format("开始下载，文件名：%s", fileName));
         HttpURLConnection conn = null;
@@ -90,8 +86,9 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                     try {
                         new UnitDownloader(task.getFrom(), task.getTo(), meta.getLink(), dest).download(fileCurSize);
                         finishCount.incrementAndGet();
+                        LogUtils.info(LOGGER, String.format("下载进度：%d / %d，文件名：%s", finishCount.get(), SPLIT_COUNT, fileName));
                     } catch (Exception e) {
-                        LogUtils.error(LOGGER, "分片下载失败，重新加入任务列表");
+                        // LogUtils.error(LOGGER, "分片下载失败，重新加入任务列表");
                         taskList.offerLast(task);
                     }
                 });
@@ -111,11 +108,11 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
      * 初始化任务列表
      */
     private void initTaskList(int fileTotalSize, Deque<UnitTask> taskList) {
-        int unitSize = fileTotalSize / SPLIT_COUNT;
+        int size = (int) Math.ceil(1.0 * fileTotalSize / SPLIT_COUNT);
         for (int i = 0; i < SPLIT_COUNT; i++) {
-            int from = i * unitSize;
+            int from = i * size;
             // 最后一片直接取所有
-            int to = i == SPLIT_COUNT - 1 ? fileTotalSize : (i + 1) * unitSize;
+            int to = i == SPLIT_COUNT - 1 ? -1 : (i + 1) * size;
             taskList.offerLast(new UnitTask(from, to));
         }
     }

@@ -74,6 +74,7 @@ public class M3U8Utils {
             try {
                 conn = (HttpURLConnection) new URL(url).openConnection();
                 conn.setRequestMethod("GET");
+                conn.setRequestProperty("Connection", "close");
                 if (CollectionUtil.isNotEmpty(headerMap)) {
                     for (String key : headerMap.keySet()) {
                         conn.setRequestProperty(key, headerMap.get(key));
