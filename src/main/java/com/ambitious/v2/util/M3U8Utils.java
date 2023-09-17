@@ -1,6 +1,8 @@
 package com.ambitious.v2.util;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.ContentType;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
@@ -11,6 +13,7 @@ import com.ambitious.v2.transfer.FfmPegTransfer;
 import com.ambitious.v2.transfer.FileChannelTsTransfer;
 import com.ambitious.v2.transfer.TsTransfer;
 import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +21,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author ambitious
@@ -33,6 +39,7 @@ public class M3U8Utils {
     private static final String NETWORK_LINK_PREFIX = "http";
     private static final String LOCAL_FILE_PREFIX = "file";
     private static final TsTransfer TS_TRANSFER;
+    private static final Set<String> VALID_M3U8_CONTENT_TYPES = Sets.newHashSet("application/vnd.apple.mpegurl", "application/x-mpegURL");
 
     static {
         switch (Config.TRANSFER.getUSE()) {
@@ -63,8 +70,30 @@ public class M3U8Utils {
         int retryTime = 3;
         int currentTry = 0;
         while (currentTry < retryTime) {
+            HttpURLConnection conn = null;
+            try {
+                conn = (HttpURLConnection) new URL(url).openConnection();
+                conn.setRequestMethod("GET");
+                if (CollectionUtil.isNotEmpty(headerMap)) {
+                    for (String key : headerMap.keySet()) {
+                        conn.setRequestProperty(key, headerMap.get(key));
+                    }
+                }
+                String contentType = conn.getHeaderField("Content-Type");
+                if (StrUtil.isNotEmpty(contentType) && !VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
+                    return false;
+                }
+            } catch (IOException e) {
+                currentTry++;
+                SleepUtils.sleep(1000);
+                continue;
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
             try (
-                HttpResponse res = HttpRequest.get(url).addHeaders(headerMap).keepAlive(true).execute();
+                HttpResponse res = HttpRequest.get(url).addHeaders(headerMap).execute();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))
             ) {
                 String firstLine = reader.readLine();
@@ -74,12 +103,10 @@ public class M3U8Utils {
                 String valid = "#EXTM3U";
                 firstLine = firstLine.substring(0, Math.min(valid.length(), firstLine.length()));
                 return firstLine.equalsIgnoreCase(valid);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // 有可能是网络连接异常，触发重试机制
                 currentTry++;
                 SleepUtils.sleep(1000);
-            } catch (Exception e) {
-                return false;
             }
         }
         return false;
