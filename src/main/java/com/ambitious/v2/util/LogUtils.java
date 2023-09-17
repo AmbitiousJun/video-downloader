@@ -15,18 +15,18 @@ public class LogUtils {
     public static final String ANSI_RESET = "\u001B[0m";
 
     public static void info(Logger logger, String msg) {
-        logger.info(ANSI_INFO + msg + ANSI_RESET);
+        logger.info(ANSI_INFO + "\n" + msg + ANSI_RESET);
     }
 
     public static void success(Logger logger, String msg) {
-        logger.info(ANSI_SUCCESS + msg + ANSI_RESET);
+        logger.info(ANSI_SUCCESS + "\n" +msg + ANSI_RESET);
     }
 
     public static void warning(Logger logger, String msg) {
-        logger.warn(ANSI_WARNING + msg + ANSI_RESET);
+        logger.warn(ANSI_WARNING + "\n" +msg + ANSI_RESET);
     }
 
     public static void error(Logger logger, String msg) {
-        logger.error(ANSI_DANGER + msg + ANSI_RESET);
+        logger.error(ANSI_DANGER + "\n" +msg + ANSI_RESET);
     }
 }

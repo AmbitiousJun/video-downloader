@@ -6,6 +6,7 @@ import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             while (finishCount.get() < SPLIT_COUNT) {
                 if (taskList.isEmpty()) {
                     // 任务有可能失败，先睡眠再重新判断
-                    Thread.sleep(2000);
+                    SleepUtils.sleep(2000);
                     continue;
                 }
                 UnitTask task = taskList.pop();
