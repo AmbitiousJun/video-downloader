@@ -24,10 +24,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Deque;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author ambitious
@@ -41,8 +38,6 @@ public class M3U8Utils {
     private static final TsTransfer TS_TRANSFER;
     private static final Set<String> VALID_M3U8_CONTENT_TYPES = Sets.newHashSet(
             "application/vnd.apple.mpegurl",
-            "application/vnd.apple.mpegURL",
-            "application/x-mpegURL",
             "application/x-mpegurl"
     );
 
@@ -86,7 +81,11 @@ public class M3U8Utils {
                     }
                 }
                 String contentType = conn.getHeaderField("Content-Type");
-                if (StrUtil.isNotEmpty(contentType) && !VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
+                if (StrUtil.isEmpty(contentType)) {
+                    return false;
+                }
+                contentType = contentType.toLowerCase().split(";")[0];
+                if (!VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
                     return false;
                 }
             } catch (IOException e) {
