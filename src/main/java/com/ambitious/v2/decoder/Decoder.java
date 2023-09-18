@@ -65,6 +65,7 @@ public class Decoder {
                             }
                             listener.newDecodeUrl(useVipFetchDecode(meta, name));
                         }
+                        SleepUtils.sleep(10000);
                     } catch (Exception e) {
                         LogUtils.error(LOGGER, "视频下载地址解析失败：" + e.getMessage() + "，重新加入任务列表");
                         list.offerLast(meta);
