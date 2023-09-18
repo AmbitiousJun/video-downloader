@@ -55,6 +55,10 @@ public abstract class M3U8Actuator implements DownloadActuator {
 
     protected void coreDownload(DownloadMeta meta, TsMeta tsMeta, File tempDir) throws Exception {
         File ts = new File(tempDir, String.format(FileConstant.TS_FILENAME_FORMAT, tsMeta.getIndex()));
+        if (ts.exists()) {
+            LogUtils.warning(LOGGER, "分片已存在，跳过下载");
+            return;
+        }
         boolean success = false;
         while (!success) {
             try (HttpResponse res = HttpRequest.get(tsMeta.getUrl()).addHeaders(meta.getHeaderMap()).keepAlive(true).execute()) {

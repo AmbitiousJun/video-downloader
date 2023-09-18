@@ -221,7 +221,8 @@ public class M3U8Utils {
     public static File initTempDir(String filename) {
         File tempDir = new File(filename + "_" + Config.DOWNLOADER.TS_DIR_SUFFIX);
         if (tempDir.exists() && !tempDir.delete()) {
-            throw new RuntimeException("创建临时目录失败，请先删除旧临时目录");
+            LogUtils.warning(LOGGER, "临时目录已存在：" + tempDir.getName());
+            return tempDir;
         }
         if (!tempDir.mkdirs()) {
             throw new RuntimeException("创建临时目录失败");
