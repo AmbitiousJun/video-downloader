@@ -67,9 +67,9 @@ public class M3U8Utils {
         if (StrUtil.isEmpty(url)) {
             return false;
         }
-        int retryTime = 20;
-        int currentTry = 0;
-        while (currentTry < retryTime) {
+        boolean success = false;
+        while (!success) {
+            LogUtils.info(LOGGER, "正在解析 m3u8 信息...");
             HttpURLConnection conn = null;
             try {
                 conn = (HttpURLConnection) new URL(url).openConnection();
@@ -88,9 +88,8 @@ public class M3U8Utils {
                 if (!VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
                     return false;
                 }
-            } catch (IOException e) {
-                currentTry++;
-                SleepUtils.sleep(1000);
+            } catch (Exception e) {
+                SleepUtils.sleep(2000);
                 continue;
             } finally {
                 if (conn != null) {
@@ -110,9 +109,9 @@ public class M3U8Utils {
                 return firstLine.equalsIgnoreCase(valid);
             } catch (Exception e) {
                 // 有可能是网络连接异常，触发重试机制
-                currentTry++;
-                SleepUtils.sleep(1000);
+                SleepUtils.sleep(2000);
             }
+            success = true;
         }
         return false;
     }
