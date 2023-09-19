@@ -1,6 +1,7 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,21 +51,31 @@ public class UnitDownloader {
     public void download(AtomicInteger fileCurSize) throws Exception {
         HttpURLConnection conn = null;
         try {
-            conn = (HttpURLConnection) new URL(this.url).openConnection();
-            conn.setRequestProperty("Range", String.format("bytes=%d-%s", this.from, this.to == -1 ? "" : this.to + ""));
-            InputStream is = conn.getInputStream();
-            try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
-                // 定位到文件中该分片的位置
-                file.seek(this.from);
-                // 缓冲区
-                byte[] buffer = new byte[1024 * 1024];
-                int len = is.read(buffer, 0, buffer.length);
-                while (len > 0) {
-                    file.write(buffer, 0, len);
-                    // 记录下载的字节数
-                    fileCurSize.addAndGet(len);
-                    len = is.read(buffer, 0, buffer.length);
+            boolean success = false;
+            while (!success) {
+                conn = (HttpURLConnection) new URL(this.url).openConnection();
+                conn.setRequestProperty("Range", String.format("bytes=%d-%s", this.from, this.to == -1 ? "" : this.to + ""));
+                int code = conn.getResponseCode();
+                if (code != 200) {
+                    LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
+                    SleepUtils.sleep(2000);
+                    continue;
                 }
+                InputStream is = conn.getInputStream();
+                try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
+                    // 定位到文件中该分片的位置
+                    file.seek(this.from);
+                    // 缓冲区
+                    byte[] buffer = new byte[1024 * 1024];
+                    int len = is.read(buffer, 0, buffer.length);
+                    while (len > 0) {
+                        file.write(buffer, 0, len);
+                        // 记录下载的字节数
+                        fileCurSize.addAndGet(len);
+                        len = is.read(buffer, 0, buffer.length);
+                    }
+                }
+                success = true;
             }
         } catch (Exception e) {
             LogUtils.warning(LOGGER, "分片下载失败：" + e.getMessage());

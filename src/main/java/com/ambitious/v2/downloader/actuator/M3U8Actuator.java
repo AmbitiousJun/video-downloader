@@ -9,6 +9,7 @@ import com.ambitious.v2.pojo.TsMeta;
 import com.ambitious.v2.util.HttpUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.M3U8Utils;
+import com.ambitious.v2.util.SleepUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +66,12 @@ public abstract class M3U8Actuator implements DownloadActuator {
                 // 有些 url 可能只是中转 url，需要添加请求头
                 if (res.getStatus() == 302) {
                     HttpUtil.downloadFile(res.header("Location"), ts);
-                } else if (res.getStatus() == 429) {
-                    LogUtils.warning(LOGGER, "检测到请求频繁，两秒后重试");
-                    Thread.sleep(2000);
+                } else if (res.getStatus() != 200) {
+                    LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
+                    SleepUtils.sleep(2000);
                     continue;
-                } else {
-                    HttpUtils.downloadStream2File(res.bodyStream(), ts);
                 }
+                HttpUtils.downloadStream2File(res.bodyStream(), ts);
                 success = true;
             }
         }
