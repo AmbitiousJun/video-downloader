@@ -67,7 +67,7 @@ public class M3U8Utils {
         if (StrUtil.isEmpty(url)) {
             return false;
         }
-        int retryTime = 3;
+        int retryTime = 20;
         int currentTry = 0;
         while (currentTry < retryTime) {
             HttpURLConnection conn = null;
