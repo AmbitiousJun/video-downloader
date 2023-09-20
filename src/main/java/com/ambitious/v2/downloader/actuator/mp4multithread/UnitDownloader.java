@@ -55,13 +55,13 @@ public class UnitDownloader {
             while (!success) {
                 conn = (HttpURLConnection) new URL(this.url).openConnection();
                 conn.setRequestProperty("Range", String.format("bytes=%d-%s", this.from, this.to == -1 ? "" : this.to + ""));
+                InputStream is = conn.getInputStream();
                 int code = conn.getResponseCode();
                 if (code != 200) {
                     LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;
                 }
-                InputStream is = conn.getInputStream();
                 try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
                     // 定位到文件中该分片的位置
                     file.seek(this.from);

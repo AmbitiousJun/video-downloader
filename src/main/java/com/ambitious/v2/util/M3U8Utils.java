@@ -79,6 +79,7 @@ public class M3U8Utils {
                         conn.setRequestProperty(key, headerMap.get(key));
                     }
                 }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 int code = conn.getResponseCode();
                 if (code != 200) {
                     throw new RuntimeException();
@@ -91,7 +92,6 @@ public class M3U8Utils {
                 if (!VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
                     return false;
                 }
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String line = reader.readLine();
                 if (StrUtil.isEmpty(line)) {
                     return false;
@@ -175,7 +175,7 @@ public class M3U8Utils {
         while (true) {
             try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
             ) {
-                if (res.getStatus() == 429) {
+                if (res.getStatus() != 200) {
                     LOGGER.info("请求 m3u8 文件失败：触发频繁请求，两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;
