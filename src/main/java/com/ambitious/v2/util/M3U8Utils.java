@@ -67,53 +67,47 @@ public class M3U8Utils {
         if (StrUtil.isEmpty(url)) {
             return false;
         }
-        boolean success = false;
-        while (!success) {
+        while (true) {
             LogUtils.info(LOGGER, "正在解析 m3u8 信息...");
             HttpURLConnection conn = null;
             try {
                 conn = (HttpURLConnection) new URL(url).openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("Connection", "close");
+                conn.setRequestProperty("Connection", "Close");
                 if (CollectionUtil.isNotEmpty(headerMap)) {
                     for (String key : headerMap.keySet()) {
                         conn.setRequestProperty(key, headerMap.get(key));
                     }
                 }
+                int code = conn.getResponseCode();
+                if (code != 200) {
+                    throw new RuntimeException();
+                }
                 String contentType = conn.getHeaderField("Content-Type");
                 if (StrUtil.isEmpty(contentType)) {
-                    return false;
+                    throw new RuntimeException();
                 }
                 contentType = contentType.toLowerCase().split(";")[0];
                 if (!VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
                     return false;
                 }
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line = reader.readLine();
+                if (StrUtil.isEmpty(line)) {
+                    return false;
+                }
+                String valid = "#EXTM3U";
+                line = line.substring(0, Math.min(valid.length(), line.length()));
+                return line.equalsIgnoreCase(valid);
             } catch (Exception e) {
+                LogUtils.warning(LOGGER, String.format("解析异常：%s，两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);
-                continue;
             } finally {
                 if (conn != null) {
                     conn.disconnect();
                 }
             }
-            try (
-                HttpResponse res = HttpRequest.get(url).addHeaders(headerMap).execute();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(res.bodyStream()))
-            ) {
-                String firstLine = reader.readLine();
-                if (StrUtil.isEmpty(firstLine)) {
-                    return false;
-                }
-                String valid = "#EXTM3U";
-                firstLine = firstLine.substring(0, Math.min(valid.length(), firstLine.length()));
-                return firstLine.equalsIgnoreCase(valid);
-            } catch (Exception e) {
-                // 有可能是网络连接异常，触发重试机制
-                SleepUtils.sleep(2000);
-            }
-            success = true;
         }
-        return false;
     }
 
     /**
