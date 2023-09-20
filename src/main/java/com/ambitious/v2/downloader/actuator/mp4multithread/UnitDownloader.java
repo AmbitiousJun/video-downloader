@@ -1,5 +1,6 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
+import cn.hutool.http.HttpStatus;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.SleepUtils;
 import org.slf4j.Logger;
@@ -56,8 +57,8 @@ public class UnitDownloader {
                 conn = (HttpURLConnection) new URL(this.url).openConnection();
                 conn.setRequestProperty("Range", String.format("bytes=%d-%s", this.from, this.to == -1 ? "" : this.to + ""));
                 InputStream is = conn.getInputStream();
-                int code = conn.getResponseCode();
-                if (code != 200) {
+                String code = conn.getResponseCode() + "";
+                if (!code.startsWith("2")) {
                     LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;

@@ -2,10 +2,7 @@ package com.ambitious.v2.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.ContentType;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
+import cn.hutool.http.*;
 import com.ambitious.v2.config.Config;
 import com.ambitious.v2.pojo.TsMeta;
 import com.ambitious.v2.transfer.CvTsTransfer;
@@ -81,7 +78,7 @@ public class M3U8Utils {
                 }
                 BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 int code = conn.getResponseCode();
-                if (code != 200) {
+                if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException();
                 }
                 String contentType = conn.getHeaderField("Content-Type");
@@ -175,7 +172,7 @@ public class M3U8Utils {
         while (true) {
             try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
             ) {
-                if (res.getStatus() != 200) {
+                if (res.getStatus() != HttpStatus.HTTP_OK) {
                     LOGGER.info("请求 m3u8 文件失败：触发频繁请求，两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;

@@ -1,7 +1,9 @@
 package com.ambitious.v2.downloader.actuator;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpStatus;
 import cn.hutool.http.HttpUtil;
 import com.ambitious.v2.constant.FileConstant;
 import com.ambitious.v2.pojo.DownloadMeta;
@@ -14,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Deque;
 
 /**
@@ -62,17 +67,34 @@ public abstract class M3U8Actuator implements DownloadActuator {
         }
         boolean success = false;
         while (!success) {
-            try (HttpResponse res = HttpRequest.get(tsMeta.getUrl()).addHeaders(meta.getHeaderMap()).keepAlive(true).execute()) {
-                // 有些 url 可能只是中转 url，需要添加请求头
-                if (res.getStatus() == 302) {
-                    HttpUtil.downloadFile(res.header("Location"), ts);
-                } else if (res.getStatus() != 200) {
+            HttpURLConnection conn = null;
+            try {
+                conn = (HttpURLConnection) new URL(tsMeta.getUrl()).openConnection();
+                conn.setRequestMethod("GET");
+                if (CollectionUtil.isNotEmpty(meta.getHeaderMap())) {
+                    for (String key : meta.getHeaderMap().keySet()) {
+                        conn.setRequestProperty(key, meta.getHeaderMap().get(key));
+                    }
+                }
+                InputStream is = conn.getInputStream();
+                int code = conn.getResponseCode();
+                System.out.println(code);
+                if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
+                    HttpUtil.downloadFile(conn.getHeaderField("Location"), ts);
+                } else if (code != HttpStatus.HTTP_OK) {
                     LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;
                 }
-                HttpUtils.downloadStream2File(res.bodyStream(), ts);
+                HttpUtils.downloadStream2File(is, ts);
                 success = true;
+            } catch (Exception e) {
+                LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
+                SleepUtils.sleep(200);
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
         }
     }
