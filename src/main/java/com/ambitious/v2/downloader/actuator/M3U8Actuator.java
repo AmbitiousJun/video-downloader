@@ -78,7 +78,6 @@ public abstract class M3U8Actuator implements DownloadActuator {
                 }
                 InputStream is = conn.getInputStream();
                 int code = conn.getResponseCode();
-                System.out.println(code);
                 if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
                     HttpUtil.downloadFile(conn.getHeaderField("Location"), ts);
                 } else if (code != HttpStatus.HTTP_OK) {
