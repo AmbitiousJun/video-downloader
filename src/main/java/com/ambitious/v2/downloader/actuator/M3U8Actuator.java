@@ -1,6 +1,7 @@
 package com.ambitious.v2.downloader.actuator;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
@@ -59,7 +60,7 @@ public abstract class M3U8Actuator implements DownloadActuator {
      */
     protected abstract void handleDownload(DownloadMeta meta, Deque<TsMeta> tsMetas, File tempDir) throws InterruptedException;
 
-    protected void coreDownload(DownloadMeta meta, TsMeta tsMeta, File tempDir) throws Exception {
+    protected void coreDownload(DownloadMeta meta, TsMeta tsMeta, File tempDir) {
         File ts = new File(tempDir, String.format(FileConstant.TS_FILENAME_FORMAT, tsMeta.getIndex()));
         if (ts.exists()) {
             LogUtils.warning(LOGGER, "分片已存在，跳过下载");
@@ -67,33 +68,18 @@ public abstract class M3U8Actuator implements DownloadActuator {
         }
         boolean success = false;
         while (!success) {
-            HttpURLConnection conn = null;
-            try {
-                conn = (HttpURLConnection) new URL(tsMeta.getUrl()).openConnection();
-                conn.setRequestMethod("GET");
-                if (CollectionUtil.isNotEmpty(meta.getHeaderMap())) {
-                    for (String key : meta.getHeaderMap().keySet()) {
-                        conn.setRequestProperty(key, meta.getHeaderMap().get(key));
-                    }
-                }
-                InputStream is = conn.getInputStream();
-                int code = conn.getResponseCode();
+            try (HttpResponse resp = new HttpRequest(UrlBuilder.of(tsMeta.getUrl())).addHeaders(meta.getHeaderMap()).execute()) {
+                int code = resp.getStatus();
                 if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
-                    HttpUtil.downloadFile(conn.getHeaderField("Location"), ts);
+                    HttpUtil.downloadFile(resp.header("Location"), ts);
                 } else if (code != HttpStatus.HTTP_OK) {
-                    LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
-                    SleepUtils.sleep(2000);
-                    continue;
+                    throw new RuntimeException("code " + code);
                 }
-                HttpUtils.downloadStream2File(is, ts);
+                HttpUtils.downloadStream2File(resp.bodyStream(), ts);
                 success = true;
             } catch (Exception e) {
-                LogUtils.warning(LOGGER, "分片下载失败，两秒后重试");
-                SleepUtils.sleep(200);
-            } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
+                LogUtils.warning(LOGGER, String.format("分片下载失败：%s，两秒后重试", e.getMessage()));
+                SleepUtils.sleep(2000);
             }
         }
     }
