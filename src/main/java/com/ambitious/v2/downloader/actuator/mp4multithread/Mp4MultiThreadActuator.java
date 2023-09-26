@@ -3,8 +3,10 @@ package com.ambitious.v2.downloader.actuator.mp4multithread;
 import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
+import com.ambitious.v2.util.HttpUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.SleepUtils;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             // 1 初始化文件
             initFile(dest);
             // 2 获取文件总大小
-            conn = (HttpURLConnection) new URL(meta.getLink()).openConnection();
+            conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(meta.getLink(), null));
             conn.setRequestProperty("Connection", "Close");
             conn.connect();
             fileTotalSize.set(conn.getContentLength());
@@ -99,9 +101,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             dest.delete();
             throw new Exception("文件下载失败");
         } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
+            HttpUtils.closeConn(conn);
         }
     }
 

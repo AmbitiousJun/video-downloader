@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Deque;
+import java.util.Map;
 
 /**
  * 提取 m3u8 下载的公共逻辑（模板方法模式）
@@ -68,18 +69,26 @@ public abstract class M3U8Actuator implements DownloadActuator {
         }
         boolean success = false;
         while (!success) {
-            try (HttpResponse resp = new HttpRequest(UrlBuilder.of(tsMeta.getUrl())).addHeaders(meta.getHeaderMap()).execute()) {
-                int code = resp.getStatus();
+            HttpURLConnection conn = null;
+            try {
+                conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(tsMeta.getUrl(), meta.getHeaderMap()));
+                InputStream is = conn.getInputStream();
+                int code = conn.getResponseCode();
                 if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
-                    HttpUtil.downloadFile(resp.header("Location"), ts);
+                    HttpUtil.downloadFile(conn.getHeaderField("Location"), ts);
                 } else if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException("code " + code);
                 }
-                HttpUtils.downloadStream2File(resp.bodyStream(), ts);
+                HttpUtils.downloadStream2File(is, ts);
                 success = true;
             } catch (Exception e) {
+                if (!ts.delete()) {
+                    LogUtils.error(LOGGER, String.format("分片下载失败，临时文件删除失败, 文件名：%s", ts.getName()));
+                }
                 LogUtils.warning(LOGGER, String.format("分片下载失败：%s，两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);
+            } finally {
+                HttpUtils.closeConn(conn);
             }
         }
     }

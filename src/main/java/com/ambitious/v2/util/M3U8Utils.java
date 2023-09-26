@@ -68,14 +68,8 @@ public class M3U8Utils {
             LogUtils.info(LOGGER, "正在解析 m3u8 信息...");
             HttpURLConnection conn = null;
             try {
-                conn = (HttpURLConnection) new URL(url).openConnection();
-                conn.setRequestMethod("GET");
+                conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(url, headerMap));
                 conn.setRequestProperty("Connection", "Close");
-                if (CollectionUtil.isNotEmpty(headerMap)) {
-                    for (String key : headerMap.keySet()) {
-                        conn.setRequestProperty(key, headerMap.get(key));
-                    }
-                }
                 BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 int code = conn.getResponseCode();
                 if (code != HttpStatus.HTTP_OK) {
