@@ -76,8 +76,7 @@ public class Config {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("媒体类型配置错误，可选值：mp4, m3u8");
         }
-        int threadCount = CastUtils.cast(c.get("thread-count"));
-        return new DecoderConfig(use, resourceType, threadCount, c);
+        return new DecoderConfig(use, resourceType, c);
     }
 
     /**

@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -27,8 +28,13 @@ public class YoutubeDlConfig {
         try {
             String cookiesFrom = (String) c.get("cookies-from");
             this.cookiesFrom = StrUtil.isEmpty(cookiesFrom) || cookiesFrom.equals(NO_COOKIE) ? null : cookiesFrom;
-            List<Object> rawCodes = CastUtils.cast(c.get("format-codes"));
-            this.formatCodes = checkFormatCodes(rawCodes);
+            String formatCodesKey = "format-codes";
+            if (Objects.isNull(c.get(formatCodesKey))) {
+                this.formatCodes = Lists.newArrayList();
+            } else {
+                List<Object> rawCodes = CastUtils.cast(c.get(formatCodesKey));
+                this.formatCodes = checkFormatCodes(rawCodes);
+            }
             checkLocalEnv();
         } catch (Exception e) {
             throw new RuntimeException("加载 youtube-dl 配置失败", e);

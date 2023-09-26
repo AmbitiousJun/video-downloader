@@ -114,7 +114,7 @@ public class M3U8Utils {
         // 解析器使用的是 nio 写出文件，这里使用自旋锁等待文件生成
         File file = new File(m3u8Url.substring(7));
         while (!file.exists()) {
-            LOGGER.info("查找不到本地的 m3u8 文件：{}", m3u8Url);
+            LogUtils.info(LOGGER, String.format("查找不到本地的 m3u8 文件：%s", m3u8Url));
             SleepUtils.sleep(1000);
         }
         // 1 读取 m3u8 文件
@@ -141,7 +141,7 @@ public class M3U8Utils {
         } finally {
             File localM3U8 = new File(m3u8Url.substring(LOCAL_FILE_PREFIX.length() + 3));
             if (localM3U8.exists() && !localM3U8.delete()) {
-                LOGGER.error("本地 m3u8 文件删除失败");
+                LogUtils.error(LOGGER, "本地 m3u8 文件删除失败");
             }
         }
     }
@@ -167,7 +167,7 @@ public class M3U8Utils {
             try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
             ) {
                 if (res.getStatus() != HttpStatus.HTTP_OK) {
-                    LOGGER.info("请求 m3u8 文件失败：触发频繁请求，两秒后重试");
+                    LogUtils.warning(LOGGER, "请求 m3u8 文件失败：两秒后重试");
                     SleepUtils.sleep(2000);
                     continue;
                 }
@@ -219,11 +219,11 @@ public class M3U8Utils {
      */
     public static void merge(File tempDir) throws Exception {
         String fileName = tempDir.getName().substring(0, tempDir.getName().length() - Config.DOWNLOADER.TS_DIR_SUFFIX.length() - 1);
-        LOGGER.info("准备将 ts 文件合并成 mp4 文件，目标视频: {}", fileName);
+        LogUtils.info(LOGGER, String.format("准备将 ts 文件合并成 mp4 文件，目标视频: %s", fileName));
         TS_TRANSFER.ts2Mp4(tempDir, new File(tempDir.getParentFile(), fileName));
-        LOGGER.info("合并完成，将临时 ts 目录删除，目标视频：{}", fileName);
+        LogUtils.info(LOGGER, String.format("合并完成，将临时 ts 目录删除，目标视频：%s", fileName));
         if (!deleteTempDir(tempDir)) {
-            LOGGER.error("临时目录删除失败，目标视频：{}", fileName);
+            LogUtils.error(LOGGER, String.format("临时目录删除失败，目标视频：%s", fileName));
         }
     }
 

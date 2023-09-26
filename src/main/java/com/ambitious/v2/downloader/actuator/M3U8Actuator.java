@@ -82,7 +82,7 @@ public abstract class M3U8Actuator implements DownloadActuator {
                 HttpUtils.downloadStream2File(is, ts);
                 success = true;
             } catch (Exception e) {
-                if (!ts.delete()) {
+                if (ts.exists() && !ts.delete()) {
                     LogUtils.error(LOGGER, String.format("分片下载失败，临时文件删除失败, 文件名：%s", ts.getName()));
                 }
                 LogUtils.warning(LOGGER, String.format("分片下载失败：%s，两秒后重试", e.getMessage()));
