@@ -164,7 +164,7 @@ public class M3U8Utils {
         String baseUrl = m3u8Url.substring(0, lastSepPos);
         // 1 读取 m3u8 文件
         while (true) {
-            try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).keepAlive(true).execute();
+            try (HttpResponse res = HttpRequest.get(m3u8Url).addHeaders(headerMap).execute();
             ) {
                 if (res.getStatus() != HttpStatus.HTTP_OK) {
                     LogUtils.warning(LOGGER, "请求 m3u8 文件失败：两秒后重试");

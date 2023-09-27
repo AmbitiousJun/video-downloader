@@ -4,20 +4,31 @@ import cn.hutool.core.collection.CollectionUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author ambitious
  * @date 2023/5/8
  */
 public class HttpUtils {
+
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
+    /**
+     * 建立连接的超时时间
+     */
+    public static final Integer CONNECT_TIMEOUT = 30 * 1000;
+    /**
+     * 读取数据的超时时间
+     */
+    public static final Integer READ_TIMEOUT = 120 * 1000;
 
     /**
      * 生成 HttpConnection 的参数
@@ -29,13 +40,6 @@ public class HttpUtils {
         private String url;
         private String method = "GET";
         private Map<String, String> headers;
-        private Integer connectTimeout = 30 * 1000;
-        private Integer readTimeout = 120 * 1000;
-
-        public HttpOptions(String url, String method, Map<String, String> headers) {
-            this(url, headers);
-            this.method = method;
-        }
 
         public HttpOptions(String url, Map<String, String> headers) {
             this.url = url;
@@ -62,8 +66,6 @@ public class HttpUtils {
         String url = options.getUrl();
         String method = options.getMethod();
         Map<String, String> headers = options.getHeaders();
-        Integer readTimeout = options.getReadTimeout();
-        Integer connectTimeout = options.getConnectTimeout();
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod(method);
         if (CollectionUtil.isNotEmpty(headers)) {
@@ -71,21 +73,27 @@ public class HttpUtils {
                 conn.setRequestProperty(key, headers.get(key));
             }
         }
-        conn.setConnectTimeout(connectTimeout);
-        conn.setReadTimeout(readTimeout);
+        conn.setConnectTimeout(CONNECT_TIMEOUT);
+        conn.setReadTimeout(READ_TIMEOUT);
         return conn;
     }
 
     /**
-     * 将输入流输出到文件中
+     * 将输入流输出到文件中，根据类上的读取超时常量进行超时控制
      * @param is 输入流
      * @param dest 目标文件
      */
-    public static void downloadStream2File(InputStream is, File dest) throws IOException {
+    public static void downloadStream2File(InputStream is, File dest, long contentLength) throws IOException {
+        long startTime = System.currentTimeMillis();
+        LogUtils.info(LOGGER, String.format("正在下载流，大小：%.2f MB, 文件名：%s", Long.valueOf(contentLength).doubleValue() / 1024 / 1024, dest.getName()));
         try (FileOutputStream fos = new FileOutputStream(dest);
              BufferedInputStream bis = new BufferedInputStream(is)
         ) {
-            byte[] buffer = new byte[1024 * 1024];
+            byte[] buffer = new byte[Long.valueOf(contentLength).intValue() / 2 + 1];
+            long curTime = System.currentTimeMillis();
+            if (curTime - startTime > READ_TIMEOUT) {
+                throw new RuntimeException("下载超时");
+            }
             int len = bis.read(buffer, 0, buffer.length);
             while (len > 0) {
                 fos.write(buffer, 0, len);

@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -30,8 +29,8 @@ public class YtDlCodeSelector {
     private String url;
     public static final Logger LOGGER = LoggerFactory.getLogger(YtDlCodeSelector.class);
     public static final Pattern RESULT_PATTERN = Pattern.compile("\\[info\\] Available formats for .*");
-    public static final String RE_DO_INPUT = "0";
-    public static final String STOP_INPUT = "-1";
+    public static final String RE_DO_INPUT = "-1";
+    public static final String STOP_INPUT = "-2";
 
     public YtDlFormatCode requestCode() {
         try {
@@ -39,14 +38,15 @@ public class YtDlCodeSelector {
             LogUtils.BLOCK_FLAG = Boolean.TRUE;
             while (true) {
                 // 1 执行命令，获取所有可选的 format code
+                System.out.println(LogUtils.packMsg(LogUtils.ANSI_WARNING, "正在尝试读取 format code..."));
                 if (!executeProcess()) {
-                    LogUtils.warning(LOGGER, "执行命令失败，两秒后重试");
+                    System.out.println(LogUtils.packMsg(LogUtils.ANSI_DANGER, "执行命令失败，两秒后重试"));
                     SleepUtils.sleep(2000);
                     continue;
                 }
                 // 2 用户选择
                 System.out.println(LogUtils.packMsg(LogUtils.ANSI_WARNING, "！！format code 输入规范：[code] 或者 [code1+code2]（不包含[]）"));
-                System.out.println(LogUtils.packMsg(LogUtils.ANSI_WARNING, "！！输入自定义的 format code 进行解析，输入 0 重新读取 code，输入 -1 放弃解析"));
+                System.out.println(LogUtils.packMsg(LogUtils.ANSI_WARNING, String.format("！！输入自定义的 format code 进行解析，输入 %s 重新读取 code，输入 %s 放弃解析", RE_DO_INPUT, STOP_INPUT)));
                 System.out.println(LogUtils.packMsg(LogUtils.ANSI_WARNING, "请选择要解析的 format code："));
                 String input = scanner.nextLine();
                 while (StrUtil.isEmpty(input) || StrUtil.isEmpty(input.trim())) {

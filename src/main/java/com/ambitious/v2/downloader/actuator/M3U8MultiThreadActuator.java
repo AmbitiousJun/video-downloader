@@ -22,7 +22,7 @@ public class M3U8MultiThreadActuator extends M3U8Actuator {
     private static final Logger LOGGER = LoggerFactory.getLogger(M3U8MultiThreadActuator.class);
 
     @Override
-    protected void handleDownload(DownloadMeta meta, Deque<TsMeta> tsMetas, File tempDir) throws InterruptedException {
+    protected void handleDownload(DownloadMeta meta, Deque<TsMeta> tsMetas, File tempDir) {
         AtomicInteger finish = new AtomicInteger(0);
         int size = tsMetas.size();
         while (finish.get() < size) {
@@ -31,13 +31,13 @@ public class M3U8MultiThreadActuator extends M3U8Actuator {
                 SleepUtils.sleep(2000);
                 continue;
             }
-            TsMeta tsMeta = tsMetas.pop();
+            TsMeta tsMeta = tsMetas.pollFirst();
             DownloadThreadPool.submit(() -> {
                 try {
                     coreDownload(meta, tsMeta, tempDir);
                     LogUtils.info(LOGGER, String.format("请求 ts 文件中，当前进度：%d / %d，目标视频：%s", finish.incrementAndGet(), size, meta.getFileName()));
                 } catch (Exception e) {
-                    LogUtils.error(LOGGER, String.format("请求失败，重新加入到队列中，目标视频：%s", meta.getFileName()));
+                    LogUtils.error(LOGGER, String.format("请求失败：%s，重新加入到队列中，目标视频：%s", e.getMessage(), meta.getFileName()));
                     tsMetas.offerLast(tsMeta);
                 }
             });

@@ -2,6 +2,7 @@ package com.ambitious.v2.downloader.actuator;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
@@ -9,10 +10,11 @@ import cn.hutool.http.HttpUtil;
 import com.ambitious.v2.constant.FileConstant;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.TsMeta;
-import com.ambitious.v2.util.HttpUtils;
-import com.ambitious.v2.util.LogUtils;
-import com.ambitious.v2.util.M3U8Utils;
-import com.ambitious.v2.util.SleepUtils;
+import com.ambitious.v2.util.*;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 提取 m3u8 下载的公共逻辑（模板方法模式）
@@ -67,28 +71,37 @@ public abstract class M3U8Actuator implements DownloadActuator {
             LogUtils.warning(LOGGER, "分片已存在，跳过下载");
             return;
         }
-        boolean success = false;
-        while (!success) {
-            HttpURLConnection conn = null;
-            try {
-                conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(tsMeta.getUrl(), meta.getHeaderMap()));
-                InputStream is = conn.getInputStream();
-                int code = conn.getResponseCode();
+        OkHttpClient client = new OkHttpClient.Builder()
+                                .callTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                                .readTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                                .build();
+        Request request = new Request.Builder()
+                                .url(tsMeta.getUrl())
+                                .headers(Headers.of(meta.getHeaderMap()))
+                                .build();
+        while (true) {
+            try (Response response = client.newCall(request).execute()) {
+                int code = response.code();
                 if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
-                    HttpUtil.downloadFile(conn.getHeaderField("Location"), ts);
+                    String location = response.header("Location");
+                    if (StrUtil.isEmpty(location)) {
+                        throw new RuntimeException("重定向异常");
+                    }
+                    HttpUtil.downloadFile(location, ts);
                 } else if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException("code " + code);
                 }
-                HttpUtils.downloadStream2File(is, ts);
-                success = true;
+                if (response.body() == null) {
+                    throw new RuntimeException("响应体为空");
+                }
+                HttpUtils.downloadStream2File(response.body().byteStream(), ts, response.body().contentLength());
+                return;
             } catch (Exception e) {
                 if (ts.exists() && !ts.delete()) {
                     LogUtils.error(LOGGER, String.format("分片下载失败，临时文件删除失败, 文件名：%s", ts.getName()));
                 }
-                LogUtils.warning(LOGGER, String.format("分片下载失败：%s，两秒后重试", e.getMessage()));
+                LogUtils.warning(LOGGER, String.format("分片下载失败：%s, 两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);
-            } finally {
-                HttpUtils.closeConn(conn);
             }
         }
     }

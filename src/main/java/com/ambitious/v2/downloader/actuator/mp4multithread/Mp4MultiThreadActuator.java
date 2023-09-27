@@ -91,7 +91,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                         finishCount.incrementAndGet();
                         LogUtils.info(LOGGER, String.format("下载进度：%d / %d，文件名：%s", finishCount.get(), SPLIT_COUNT, fileName));
                     } catch (Exception e) {
-                        // LogUtils.error(LOGGER, "分片下载失败，重新加入任务列表");
+                        LogUtils.error(LOGGER, String.format("分片下载失败：%s，重新加入任务列表，文件名：%s", e.getMessage(), fileName));
                         taskList.offerLast(task);
                     }
                 });
@@ -113,7 +113,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
         for (int i = 0; i < SPLIT_COUNT; i++) {
             int from = i * size;
             // 最后一片直接取所有
-            int to = i == SPLIT_COUNT - 1 ? -1 : (i + 1) * size;
+            int to = i == SPLIT_COUNT - 1 ? fileTotalSize : (i + 1) * size;
             taskList.offerLast(new UnitTask(from, to));
         }
     }
