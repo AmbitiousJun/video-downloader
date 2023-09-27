@@ -92,7 +92,9 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                         LogUtils.info(LOGGER, String.format("下载进度：%d / %d，文件名：%s", finishCount.get(), SPLIT_COUNT, fileName));
                     } catch (Exception e) {
                         LogUtils.error(LOGGER, String.format("分片下载失败：%s，重新加入任务列表，文件名：%s", e.getMessage(), fileName));
-                        taskList.offerLast(task);
+                        synchronized (taskList) {
+                            taskList.offerLast(task);
+                        }
                     }
                 });
             }

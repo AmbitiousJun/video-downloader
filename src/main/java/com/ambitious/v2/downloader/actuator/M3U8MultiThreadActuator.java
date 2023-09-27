@@ -38,7 +38,9 @@ public class M3U8MultiThreadActuator extends M3U8Actuator {
                     LogUtils.info(LOGGER, String.format("请求 ts 文件中，当前进度：%d / %d，目标视频：%s", finish.incrementAndGet(), size, meta.getFileName()));
                 } catch (Exception e) {
                     LogUtils.error(LOGGER, String.format("请求失败：%s，重新加入到队列中，目标视频：%s", e.getMessage(), meta.getFileName()));
-                    tsMetas.offerLast(tsMeta);
+                    synchronized (tsMetas) {
+                        tsMetas.offerLast(tsMeta);
+                    }
                 }
             });
         }

@@ -45,6 +45,9 @@ public class LogUtils {
                     continue;
                 }
                 LogItem item = LOG_QUEUE.pollFirst();
+                if (item == null) {
+                    continue;
+                }
                 switch (item.type) {
                     case "warn":
                         item.logger.warn(item.log);
