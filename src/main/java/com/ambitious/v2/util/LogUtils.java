@@ -22,7 +22,7 @@ public class LogUtils {
      * 阻塞日志标志
      */
     public static Boolean BLOCK_FLAG = Boolean.FALSE;
-    private static final Deque<LogItem> LOG_QUEUE = Queues.newArrayDeque();
+    private static final Deque<LogItem> LOG_QUEUE = Queues.synchronizedDeque(Queues.newArrayDeque());
 
     private static class LogItem {
         Logger logger;
@@ -58,10 +58,25 @@ public class LogUtils {
                     default:
                         item.logger.info(item.log);
                 }
+                SleepUtils.sleep(50);
             }
         }, "t-log").start();
     }
 
+    /**
+     * 当前日志队列中是否还有日志
+     * @return 有或无
+     */
+    public static boolean hasLogs() {
+        return !LOG_QUEUE.isEmpty();
+    }
+
+    /**
+     * 将日志包装成带颜色
+     * @param type 颜色前缀，定义于当前类上
+     * @param msg 要包装的日志
+     * @return 包装完成的日志
+     */
     public static String packMsg(String type, String msg) {
         return type + msg + ANSI_RESET;
     }

@@ -7,6 +7,7 @@ import com.ambitious.v2.downloader.Downloader;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.VideoMeta;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Queues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,10 @@ public class Main {
         });
         latch.await();
         LogUtils.success(LOGGER, "所有任务处理完成");
+        // 等待日志输出结束
+        while (LogUtils.hasLogs()) {
+            SleepUtils.sleep(500);
+        }
         System.exit(0);
     }
 
