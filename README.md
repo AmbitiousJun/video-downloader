@@ -80,7 +80,7 @@ java -jar downloader.jar
 
 data.txt:
 
-```text
+```shell
 这是一个视频|https://example.com/test.mp4
 ```
 
@@ -103,7 +103,7 @@ downloader:
 
 data.txt:
 
-```text
+```shell
 这是一个视频|https://example.com/test.m3u8
 ```
 
@@ -153,7 +153,7 @@ decoder: # 解码器相关配置
 
 data.txt:
 
-```text
+```shell
 这是一个视频|https://v.qq.com/x/cover/mzc00200ynivua7/r00434mq14v.html
 ```
 
@@ -188,7 +188,7 @@ decoder: # 解码器相关配置
 
 data.txt:
 
-```text
+```shell
 开始推理吧.S01E01|https://v.qq.com/x/cover/mzc00200ynivua7/r00434mq14v.html
 开始推理吧.S01E02|https://v.qq.com/x/cover/mzc00200ynivua7/r00434mq14v.html
 开始推理吧.S01E03|https://v.qq.com/x/cover/mzc00200ynivua7/r00434mq14v.html
