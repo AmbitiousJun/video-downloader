@@ -33,7 +33,7 @@
 
 3. youtube-dl
 
-推荐下载 [yt-dlp](https://github.com/yt-dlp/yt-dlp)，安装完成后，**请到可执行文件所在路径，将 `yt-dlp` 文件名修改为 `youtube-dl`**
+推荐下载 [yt-dlp](https://github.com/yt-dlp/yt-dlp)，安装完成后，**请到可执行文件所在路径，将 `yt-dlp` 文件名修改为 `youtube-dl` 或者添加一个软链接**
 
 在终端任意目录下执行 `youtube-dl --version` 能够正常输出即可：
 
