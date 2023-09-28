@@ -111,7 +111,7 @@ config.yml:
 
 ```yml
 decoder: # 解码器相关配置
-  use: youtube-dl # 使用哪种解析方式，可选值：none, free-api, vip-fetch, youtube-dl，若使用 youtube-dl，resource-type 会被忽略
+  use: none # 使用哪种解析方式，可选值：none, free-api, vip-fetch, youtube-dl，若使用 youtube-dl，resource-type 会被忽略
   resource-type: m3u8 # 解析出来的文件类型，可选值：mp4, m3u8
 
 downloader:
