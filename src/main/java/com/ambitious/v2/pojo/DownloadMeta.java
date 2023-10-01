@@ -1,5 +1,6 @@
 package com.ambitious.v2.pojo;
 
+import com.ambitious.v2.util.HttpUtils;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,16 +25,7 @@ public class DownloadMeta {
     }
 
     public DownloadMeta(String link, String fileName, String originUrl, Map<String, String> headerMap) {
-        // 根据 link 添加默认的 Referer
-        Map<String, String> m = headerMap == null ? Maps.newHashMap() : headerMap;
-        final String mg = "mgtv.com";
-        final String bili = "bilivideo.com";
-        if (link.contains(mg)) {
-            m.put("Referer", "https://" + mg);
-        }
-        if (link.contains(bili)) {
-            m.put("Referer", "https://bilibili.com");
-        }
+        Map<String, String> m = HttpUtils.genDefaultHeaderMapByUrl(headerMap, link);
         this.link = link;
         this.fileName = fileName;
         this.originUrl = originUrl;

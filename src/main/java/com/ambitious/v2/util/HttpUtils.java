@@ -1,6 +1,7 @@
 package com.ambitious.v2.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -55,6 +56,25 @@ public class HttpUtils {
         if (connection != null) {
             connection.disconnect();
         }
+    }
+
+    /**
+     * 生成一个带有默认 header 头的 headerMap
+     * @param baseMap 已存在的 map
+     * @param url 需要检测的 url
+     * @return headerMap
+     */
+    public static Map<String, String> genDefaultHeaderMapByUrl(Map<String, String> baseMap, String url) {
+        Map<String, String> m = baseMap == null ? Maps.newHashMap() : baseMap;
+        final String mg = "mgtv.com";
+        final String bili = "bilivideo.com";
+        if (url.contains(mg)) {
+            m.put("Referer", "https://" + mg);
+        }
+        if (url.contains(bili)) {
+            m.put("Referer", "https://bilibili.com");
+        }
+        return m;
     }
 
     /**

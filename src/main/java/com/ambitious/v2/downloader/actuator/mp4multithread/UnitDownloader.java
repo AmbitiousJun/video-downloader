@@ -7,6 +7,7 @@ import cn.hutool.http.HttpStatus;
 import com.ambitious.v2.util.HttpUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.SleepUtils;
+import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -18,6 +19,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,9 +67,11 @@ public class UnitDownloader {
                 .readTimeout(timeout, TimeUnit.MILLISECONDS)
                 .callTimeout(timeout, TimeUnit.MILLISECONDS)
                 .build();
+        Map<String, String> defaultHeaders = HttpUtils.genDefaultHeaderMapByUrl(null, this.url);
         Request request = new Request.Builder()
                 .url(this.url)
                 .header("Range", String.format("bytes=%d-%s", this.from, this.to))
+                .headers(Headers.of(defaultHeaders))
                 .build();
         while (true) {
             try (Response response = client.newCall(request).execute()) {
