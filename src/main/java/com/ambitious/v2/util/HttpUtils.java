@@ -67,7 +67,7 @@ public class HttpUtils {
     public static Map<String, String> genDefaultHeaderMapByUrl(Map<String, String> baseMap, String url) {
         Map<String, String> m = baseMap == null ? Maps.newHashMap() : baseMap;
         final String mg = "mgtv.com";
-        final String bili = "bilivideo.com";
+        final String bili = "bilivideo";
         if (url.contains(mg)) {
             m.put("Referer", "https://" + mg);
         }

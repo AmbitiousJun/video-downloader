@@ -87,7 +87,8 @@ public abstract class M3U8Actuator implements DownloadActuator {
                     if (StrUtil.isEmpty(location)) {
                         throw new RuntimeException("重定向异常");
                     }
-                    HttpUtil.downloadFile(location, ts);
+                    tsMeta.setUrl(location);
+                    coreDownload(meta, tsMeta, tempDir);
                 } else if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException("code " + code);
                 }
