@@ -27,8 +27,12 @@ public class DownloadMeta {
         // 根据 link 添加默认的 Referer
         Map<String, String> m = headerMap == null ? Maps.newHashMap() : headerMap;
         final String mg = "mgtv.com";
+        final String bili = "bilivideo.com";
         if (link.contains(mg)) {
             m.put("Referer", "https://" + mg);
+        }
+        if (link.contains(bili)) {
+            m.put("Referer", "https://bilibili.com");
         }
         this.link = link;
         this.fileName = fileName;
