@@ -70,8 +70,8 @@ public class UnitDownloader {
         Map<String, String> defaultHeaders = HttpUtils.genDefaultHeaderMapByUrl(null, this.url);
         Request request = new Request.Builder()
                 .url(this.url)
-                .header("Range", String.format("bytes=%d-%s", this.from, this.to))
                 .headers(Headers.of(defaultHeaders))
+                .header("Range", String.format("bytes=%d-%d", this.from, this.to))
                 .build();
         while (true) {
             try (Response response = client.newCall(request).execute()) {

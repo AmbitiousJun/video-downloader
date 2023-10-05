@@ -58,7 +58,6 @@ public class LogUtils {
                     default:
                         item.logger.info(item.log);
                 }
-                SleepUtils.sleep(100);
             }
         }, "t-log").start();
     }
