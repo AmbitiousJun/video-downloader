@@ -70,7 +70,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             // 1 初始化文件
             initFile(dest);
             // 2 获取文件总大小
-            conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(meta.getLink(), null));
+            conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(meta.getLink(), HttpUtils.genDefaultHeaderMapByUrl(null, meta.getLink())));
             conn.setRequestProperty("Connection", "Close");
             conn.connect();
             fileTotalSize.set(conn.getContentLength());
