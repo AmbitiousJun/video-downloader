@@ -42,28 +42,6 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
         final AtomicInteger fileTotalSize = new AtomicInteger(0);
         final AtomicInteger fileCurSize = new AtomicInteger(0);
         final Deque<UnitTask> taskList = Queues.newArrayDeque();
-        // 使用定时器记录下载进度
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (!dest.exists() || fileTotalSize.get() == 0) {
-                    return;
-                }
-                // 1 获取文件当前大小
-                BigDecimal curSize = new BigDecimal(fileCurSize.get());
-                BigDecimal totalSize = new BigDecimal(fileTotalSize.get());
-                if (curSize.compareTo(totalSize) >= 0) {
-                    // 文件已经下载完成
-                    timer.cancel();
-                    return;
-                }
-                // 2 计算百分比
-                BigDecimal percent = curSize.divide(totalSize, new MathContext(4, RoundingMode.HALF_UP)).multiply(new BigDecimal(100));
-                LogUtils.info(LOGGER, String.format("下载进度：%s%%，文件名：%s", percent, fileName));
-            }
-        }, 0, 5000);
-
         LogUtils.info(LOGGER, String.format("开始下载，文件名：%s", fileName));
         HttpURLConnection conn = null;
         try {

@@ -62,7 +62,7 @@ public class UnitDownloader {
      */
     public void download(AtomicInteger fileCurSize) throws Exception {
         // 按照 200 KB/s 的下载速度计算超时时间
-        int timeout = Math.max(60 * 1000, (this.to - this.from) / 1024 / 200 * 1000);
+        int timeout = Math.max(5 * 60 * 1000, (this.to - this.from) / 1024 / 200 * 1000);
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(timeout, TimeUnit.MILLISECONDS)
                 .callTimeout(timeout, TimeUnit.MILLISECONDS)
