@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 分片下载器
@@ -36,11 +37,11 @@ public class UnitDownloader {
     /**
      * 分片起始字节
      */
-    private final int from;
+    private final long from;
     /**
      * 分片结束字节
      */
-    private final int to;
+    private final long to;
     /**
      * 要下载的文件 URL
      */
@@ -50,7 +51,7 @@ public class UnitDownloader {
      */
     private final File dest;
 
-    public UnitDownloader(int from, int to, String url, File dest) {
+    public UnitDownloader(long from, long to, String url, File dest) {
         this.from = from;
         this.to = to;
         this.url = url;
@@ -60,9 +61,9 @@ public class UnitDownloader {
     /**
      * 下载分片
      */
-    public void download(AtomicInteger fileCurSize) throws Exception {
+    public void download(AtomicLong fileCurSize) throws Exception {
         // 按照 200 KB/s 的下载速度计算超时时间
-        int timeout = Math.max(5 * 60 * 1000, (this.to - this.from) / 1024 / 200 * 1000);
+        long timeout = Math.max(5 * 60 * 1000, (this.to - this.from) / 1024 / 200 * 1000);
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(timeout, TimeUnit.MILLISECONDS)
                 .callTimeout(timeout, TimeUnit.MILLISECONDS)

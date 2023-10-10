@@ -9,6 +9,10 @@ import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +27,7 @@ import java.util.Deque;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 通过手动分片，多线程下载 MP4 文件
@@ -40,23 +45,25 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
     public void download(DownloadMeta meta) throws Exception {
         final File dest = new File(meta.getFileName());
         final String fileName = dest.getName();
-        final AtomicInteger fileTotalSize = new AtomicInteger(0);
-        final AtomicInteger fileCurSize = new AtomicInteger(0);
+        final AtomicLong fileTotalSize = new AtomicLong(0L);
+        final AtomicLong fileCurSize = new AtomicLong(0L);
         final Deque<UnitTask> taskList = Queues.newArrayDeque();
         LogUtils.info(LOGGER, String.format("开始下载，文件名：%s", fileName));
-        HttpURLConnection conn = null;
-        try {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(meta.getLink())
+                .headers(Headers.of(HttpUtils.genDefaultHeaderMapByUrl(null, meta.getLink())))
+                .header("Connection", "Close")
+                .build();
+        try (Response response = client.newCall(request).execute()) {
             // 1 初始化文件
             initFile(dest);
             // 2 获取文件总大小
-            conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(meta.getLink(), HttpUtils.genDefaultHeaderMapByUrl(null, meta.getLink())));
-            conn.setRequestProperty("Connection", "Close");
-            conn.connect();
-            int code = conn.getResponseCode();
+            int code = response.code();
             if (code != HttpStatus.HTTP_OK) {
                 throw new RuntimeException("请求失败，status: " + code);
             }
-            fileTotalSize.set(conn.getContentLength());
+            fileTotalSize.set(response.body().contentLength());
             // 3 初始化任务列表
             initTaskList(fileTotalSize.get(), taskList);
             // 4 分片并使用多线程进行下载
@@ -86,24 +93,22 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
         } catch (Exception e) {
             dest.delete();
             throw new Exception("文件下载失败：" + e.getMessage());
-        } finally {
-            HttpUtils.closeConn(conn);
         }
     }
 
     /**
      * 初始化任务列表
      */
-    private void initTaskList(int fileTotalSize, Deque<UnitTask> taskList) {
-        int size = (int) Math.ceil(1.0 * fileTotalSize / SPLIT_COUNT);
+    private void initTaskList(long fileTotalSize, Deque<UnitTask> taskList) {
+        long size = (long) Math.ceil(1.0 * fileTotalSize / SPLIT_COUNT);
         // 每个分片大小 2 ～ 4 MB
-        int baseSize = 2 * 1024 * 1024;
+        long baseSize = 2 * 1024 * 1024;
         for (int i = 0; i < SPLIT_COUNT; i++) {
-            int curSize = Math.min(size, fileTotalSize - i * size);
-            int start = i * curSize;
+            long curSize = Math.min(size, fileTotalSize - i * size);
+            long start = i * curSize;
             while (curSize > 2 * baseSize) {
-                int random = (int) (baseSize * Math.random());
-                int to = start + baseSize + random;
+                long random = (long) (baseSize * Math.random());
+                long to = start + baseSize + random;
                 taskList.offerLast(new UnitTask(start, to));
                 curSize -= (baseSize + random);
                 start = to;

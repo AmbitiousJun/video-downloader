@@ -15,9 +15,9 @@ public class UnitTask {
     /**
      * 起始字节
      */
-    private int from;
+    private long from;
     /**
      * 结束字节
      */
-    private int to;
+    private long to;
 }
