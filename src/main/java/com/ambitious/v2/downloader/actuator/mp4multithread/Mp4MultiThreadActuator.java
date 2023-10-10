@@ -56,7 +56,8 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             initTaskList(fileTotalSize.get(), taskList);
             // 4 分片并使用多线程进行下载
             final AtomicInteger finishCount = new AtomicInteger(0);
-            while (finishCount.get() < SPLIT_COUNT) {
+            int splitCount = taskList.size();
+            while (finishCount.get() < splitCount) {
                 if (taskList.isEmpty()) {
                     // 任务有可能失败，先睡眠再重新判断
                     SleepUtils.sleep(2000);
@@ -67,7 +68,7 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                     try {
                         new UnitDownloader(task.getFrom(), task.getTo(), meta.getLink(), dest).download(fileCurSize);
                         finishCount.incrementAndGet();
-                        LogUtils.info(LOGGER, String.format("下载进度：%d / %d，文件名：%s", finishCount.get(), SPLIT_COUNT, fileName));
+                        LogUtils.info(LOGGER, String.format("下载进度：%d / %d，文件名：%s", finishCount.get(), splitCount, fileName));
                     } catch (Exception e) {
                         LogUtils.error(LOGGER, String.format("分片下载失败：%s，重新加入任务列表，文件名：%s", e.getMessage(), fileName));
                         synchronized (taskList) {
@@ -90,11 +91,21 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
      */
     private void initTaskList(int fileTotalSize, Deque<UnitTask> taskList) {
         int size = (int) Math.ceil(1.0 * fileTotalSize / SPLIT_COUNT);
+        // 每个分片大小 2 ～ 4 MB
+        int baseSize = 2 * 1024 * 1024;
         for (int i = 0; i < SPLIT_COUNT; i++) {
-            int from = i * size;
-            // 最后一片直接取所有
-            int to = i == SPLIT_COUNT - 1 ? fileTotalSize : (i + 1) * size;
-            taskList.offerLast(new UnitTask(from, to));
+            int curSize = Math.min(size, fileTotalSize - i * size);
+            int start = i * curSize;
+            while (curSize > 2 * baseSize) {
+                int random = (int) (baseSize * Math.random());
+                int to = start + baseSize + random;
+                taskList.offerLast(new UnitTask(start, to));
+                curSize -= (baseSize + random);
+                start = to;
+            }
+            if (curSize > 0) {
+                taskList.offerLast(new UnitTask(start, start + curSize));
+            }
         }
     }
 
