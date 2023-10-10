@@ -8,6 +8,7 @@ import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.YtDlDownloadMeta;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.M3U8Utils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +48,23 @@ public class YtDlActuator implements DownloadActuator{
         int size = links.size();
         // 2 拆分任务
         for (int i = 0; i < size; i++) {
-            LogUtils.info(LOGGER, String.format("正在处理第 %d / %d 个子任务，文件名：%s", i + 1, size, ytDlMeta.getFileName()));
-            String link = links.get(i);
-            DownloadMeta tmpMeta = new DownloadMeta(link, ytDlMeta.getFileName().replace(".mp4", getPartSuffix(i)), ytDlMeta.getOriginUrl());
-            if (M3U8Utils.checkM3U8(link, ytDlMeta.getHeaderMap())) {
-                m3u8Actuator.download(tmpMeta);
-            } else {
-                mp4Actuator.download(tmpMeta);
+            while (true) {
+                try {
+                    LogUtils.info(LOGGER, String.format("正在处理第 %d / %d 个子任务，文件名：%s", i + 1, size, ytDlMeta.getFileName()));
+                    String link = links.get(i);
+                    DownloadMeta tmpMeta = new DownloadMeta(link, ytDlMeta.getFileName().replace(".mp4", getPartSuffix(i)), ytDlMeta.getOriginUrl());
+                    if (M3U8Utils.checkM3U8(link, ytDlMeta.getHeaderMap())) {
+                        m3u8Actuator.download(tmpMeta);
+                    } else {
+                        mp4Actuator.download(tmpMeta);
+                    }
+                    LogUtils.success(LOGGER, String.format("第 %d / %d 个子任务处理完成，文件名：%s", i + 1, size, ytDlMeta.getFileName()));
+                    break;
+                } catch (Exception e) {
+                    LogUtils.error(LOGGER, String.format("子任务下载失败：%s，两秒后重试", e.getMessage()));
+                    SleepUtils.sleep(2000);
+                }
             }
-            LogUtils.success(LOGGER, String.format("第 %d / %d 个子任务处理完成，文件名：%s", i + 1, size, ytDlMeta.getFileName()));
         }
         // 3 合并音视频（如果需要的话）
         mergeSubTask(ytDlMeta, size);
