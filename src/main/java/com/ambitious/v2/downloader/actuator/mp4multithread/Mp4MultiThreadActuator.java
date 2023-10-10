@@ -1,5 +1,6 @@
 package com.ambitious.v2.downloader.actuator.mp4multithread;
 
+import cn.hutool.http.HttpStatus;
 import com.ambitious.v2.downloader.actuator.DownloadActuator;
 import com.ambitious.v2.downloader.threadpool.DownloadThreadPool;
 import com.ambitious.v2.pojo.DownloadMeta;
@@ -51,6 +52,10 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
             conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(meta.getLink(), HttpUtils.genDefaultHeaderMapByUrl(null, meta.getLink())));
             conn.setRequestProperty("Connection", "Close");
             conn.connect();
+            int code = conn.getResponseCode();
+            if (code != HttpStatus.HTTP_OK) {
+                throw new RuntimeException("请求失败，status: " + code);
+            }
             fileTotalSize.set(conn.getContentLength());
             // 3 初始化任务列表
             initTaskList(fileTotalSize.get(), taskList);
@@ -77,10 +82,10 @@ public class Mp4MultiThreadActuator implements DownloadActuator {
                     }
                 });
             }
-            LOGGER.info("下载完成，文件名：{}", fileName);
+            LogUtils.success(LOGGER, "下载完成");
         } catch (Exception e) {
             dest.delete();
-            throw new Exception("文件下载失败");
+            throw new Exception("文件下载失败：" + e.getMessage());
         } finally {
             HttpUtils.closeConn(conn);
         }
