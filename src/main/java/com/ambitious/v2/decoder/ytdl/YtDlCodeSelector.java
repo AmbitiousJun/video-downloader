@@ -81,6 +81,7 @@ public class YtDlCodeSelector {
         List<String> commands = Lists.newArrayList(
                 "youtube-dl",
                 "-F",
+                "--no-playlist",
                 url
         );
         if (StrUtil.isNotEmpty(Config.DECODER.YOUTUBE_DL.cookiesFrom)) {
