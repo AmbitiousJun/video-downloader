@@ -26,7 +26,8 @@ public class YtDlHandler {
   "youtube-dl",
             "-f", formatCode.getCode(),
             url,
-            "--get-url"
+            "--get-url",
+            "--no-playlist"
         );
         if (StrUtil.isNotEmpty(Config.DECODER.YOUTUBE_DL.cookiesFrom)) {
             commands.add("--cookies-from-browser");
