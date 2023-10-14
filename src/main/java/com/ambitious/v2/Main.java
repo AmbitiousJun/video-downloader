@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.concurrent.CountDownLatch;
 
@@ -74,7 +76,7 @@ public class Main {
     public static void readVideoData() {
         LogUtils.info(LOGGER, "正在读取源数据文件 data.txt...");
         // 1 将文件 data.txt 读取成字符输入流
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get("config/data.txt"))))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(Paths.get("config/data.txt")), StandardCharsets.UTF_8))) {
             // 2 依次读取每一行数据，实例化对象
             String line = reader.readLine();
             while (StrUtil.isNotBlank(line)) {
