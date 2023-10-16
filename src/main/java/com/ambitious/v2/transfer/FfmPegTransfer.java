@@ -5,9 +5,7 @@ import com.ambitious.v2.util.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -50,7 +48,32 @@ public class FfmPegTransfer implements TsTransfer {
             return i1 - i2;
         });
         List<String> tsPaths = Arrays.stream(tsFiles).map(File::getAbsolutePath).collect(Collectors.toList());
-        ProcessBuilder pb = new ProcessBuilder("ffmpeg", "-i", "concat:" + String.join("|", tsPaths), "-c", "copy", output.getAbsolutePath());
+        concatFiles(tsDir, tsPaths, output);
+        LogUtils.success(LOGGER, String.format("转码完成，文件名：%s", output.getName()));
+    }
+
+    /**
+     * 执行 ffmpeg 合并分片
+     * @param tsDir ts 文件的目录
+     * @param tsPaths 分片路径集合
+     * @param output 输出地址
+     */
+    private void concatFiles(File tsDir, List<String> tsPaths, File output) throws IOException, InterruptedException {
+        // 1 创建一个临时文件，保存所有 ts 分片的路径
+        File tsInput = new File(tsDir, "ts_input.txt");
+        if (tsInput.exists() && !tsInput.delete()) {
+            throw new RuntimeException("无法删除临时 ts input 文件");
+        }
+        if (!tsInput.createNewFile()) {
+            throw new RuntimeException("创建临时文件失败");
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(tsInput))) {
+            for (String ts : tsPaths) {
+                bw.write(String.format("file '%s'", ts));
+                bw.newLine();
+            }
+        }
+        ProcessBuilder pb = new ProcessBuilder("ffmpeg", "-f", "concat", "-safe", "0", "-i", tsInput.getAbsolutePath(), "-c", "copy", output.getAbsolutePath());
         pb.redirectErrorStream(true);
         Process p = pb.start();
         BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -60,6 +83,5 @@ public class FfmPegTransfer implements TsTransfer {
             line = br.readLine();
         }
         p.waitFor();
-        LogUtils.success(LOGGER, String.format("转码完成，文件名：%s", output.getName()));
     }
 }
