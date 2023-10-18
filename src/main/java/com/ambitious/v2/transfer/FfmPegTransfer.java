@@ -2,6 +2,7 @@ package com.ambitious.v2.transfer;
 
 import cn.hutool.core.util.StrUtil;
 import com.ambitious.v2.util.LogUtils;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,29 +60,70 @@ public class FfmPegTransfer implements TsTransfer {
      * @param output 输出地址
      */
     private void concatFiles(File tsDir, List<String> tsPaths, File output) throws IOException, InterruptedException {
-        // 1 创建一个临时文件，保存所有 ts 分片的路径
-        File tsInput = new File(tsDir, "ts_input.txt");
-        if (tsInput.exists() && !tsInput.delete()) {
-            throw new RuntimeException("无法删除临时 ts input 文件");
+        File tempTsFile = new File(tsDir, String.format("ts_%d.ts", Integer.MAX_VALUE));
+        File tempDestFile = new File(output.getAbsolutePath().replace(".mp4", ".ts"));
+        if (tempTsFile.exists() && !tempTsFile.delete()) {
+            throw new RuntimeException("转码异常");
         }
-        if (!tsInput.createNewFile()) {
-            throw new RuntimeException("创建临时文件失败");
+        if (tempDestFile.exists() && !tempDestFile.delete()) {
+            throw new RuntimeException("转码异常");
         }
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(tsInput))) {
-            for (String ts : tsPaths) {
-                bw.write(String.format("file '%s'", ts));
-                bw.newLine();
+        // 2 遍历列表合成
+        int size = tsPaths.size();
+        int current = 0;
+        while (current < size) {
+            // 一次性合并 50 个分片
+            int handleSize = Math.min(50, size - current);
+            StringBuilder concatBuilder = new StringBuilder("concat:");
+            if (tempTsFile.exists()) {
+                concatBuilder.append(tempTsFile.getAbsolutePath());
+            }
+            for (int i = 0; i < handleSize; i++) {
+                if (i == 0 && !tempTsFile.exists()) {
+                    // 首次合并，不需要 |
+                    concatBuilder.append(tsPaths.get(i));
+                    continue;
+                }
+                concatBuilder.append("|").append(tsPaths.get(i));
+            }
+            current += handleSize;
+            String concat = concatBuilder.toString();
+            List<String> cmd = Lists.newArrayList(
+                    "ffmpeg",
+                    "-i",
+                    concat,
+                    "-c",
+                    "copy",
+                    tempDestFile.getAbsolutePath()
+            );
+            executeCmd(cmd);
+            if (tempTsFile.exists() && !tempTsFile.delete()) {
+                throw new RuntimeException("转码异常");
+            }
+            // 将生成好的文件移动到当前文件夹里面
+            if (!tempDestFile.exists() || !tempDestFile.renameTo(tempTsFile)) {
+                throw new RuntimeException("转码异常");
             }
         }
-        ProcessBuilder pb = new ProcessBuilder("ffmpeg", "-f", "concat", "-safe", "0", "-i", tsInput.getAbsolutePath(), "-c", "copy", output.getAbsolutePath());
+        // 全部转换完成后，生成最终文件
+        if (!tempTsFile.exists()) {
+            throw new RuntimeException("转码异常");
+        }
+        executeCmd(Lists.newArrayList("ffmpeg", "-i", "concat:" + tempTsFile.getAbsolutePath(), "-c", "copy", output.getAbsolutePath()));
+        if (!tempTsFile.delete()) {
+            System.out.println("临时 ts 文件删除失败");
+        }
+    }
+
+    private void executeCmd(List<String> cmd) throws IOException {
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
-        Process p = pb.start();
-        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        Process process = pb.start();
+        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = br.readLine();
         while (StrUtil.isNotEmpty(line)) {
-            LogUtils.info(LOGGER, line);
+            System.out.println(line);
             line = br.readLine();
         }
-        p.waitFor();
     }
 }
