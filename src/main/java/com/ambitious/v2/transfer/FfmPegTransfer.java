@@ -111,7 +111,7 @@ public class FfmPegTransfer implements TsTransfer {
         }
         executeCmd(Lists.newArrayList("ffmpeg", "-i", "concat:" + tempTsFile.getAbsolutePath(), "-c", "copy", output.getAbsolutePath()));
         if (!tempTsFile.delete()) {
-            System.out.println("临时 ts 文件删除失败");
+            LogUtils.warning(LOGGER, "临时 ts 文件删除失败");
         }
     }
 
@@ -122,7 +122,7 @@ public class FfmPegTransfer implements TsTransfer {
         BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = br.readLine();
         while (StrUtil.isNotEmpty(line)) {
-            System.out.println(line);
+            LogUtils.info(LOGGER, line);
             line = br.readLine();
         }
     }
