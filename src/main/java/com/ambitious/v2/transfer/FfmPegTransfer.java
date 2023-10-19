@@ -79,12 +79,17 @@ public class FfmPegTransfer implements TsTransfer {
                 concatBuilder.append(tempTsFile.getAbsolutePath());
             }
             for (int i = 0; i < handleSize; i++) {
-                if (i == 0 && !tempTsFile.exists()) {
-                    // 首次合并，不需要 |
-                    concatBuilder.append(tsPaths.get(i));
+                int pos = current + i;
+                if (tsPaths.get(pos).equals(tempTsFile.getAbsolutePath())) {
+                    // 不处理临时 ts 文件
                     continue;
                 }
-                concatBuilder.append("|").append(tsPaths.get(i));
+                if (i == 0 && !tempTsFile.exists()) {
+                    // 首次合并，不需要 |
+                    concatBuilder.append(tsPaths.get(pos));
+                    continue;
+                }
+                concatBuilder.append("|").append(tsPaths.get(pos));
             }
             current += handleSize;
             String concat = concatBuilder.toString();
