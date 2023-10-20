@@ -79,7 +79,7 @@ public class YtDlCodeSelector {
 
     private boolean executeProcess() {
         List<String> commands = Lists.newArrayList(
-                "youtube-dl",
+                Config.YOUTUBE_DL_PATH,
                 "-F",
                 "--no-playlist",
                 url

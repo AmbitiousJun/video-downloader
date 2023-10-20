@@ -2,6 +2,7 @@ package com.ambitious.v2.config.decoder;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.ambitious.v2.config.Config;
 import com.ambitious.v2.pojo.YtDlFormatCode;
 import com.ambitious.v2.util.CastUtils;
 import com.google.common.collect.Lists;
@@ -45,11 +46,10 @@ public class YoutubeDlConfig {
      * 检查本地环境中是否有 youtube-dl
      */
     private void checkLocalEnv() {
-        ProcessBuilder builder = new ProcessBuilder("youtube-dl", "--help");
+        ProcessBuilder builder = new ProcessBuilder(Config.YOUTUBE_DL_PATH, "--help");
         builder.redirectErrorStream(true);
         try {
             Process process = builder.start();
-            process.waitFor();
             BufferedReader bf = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String firstLine = bf.readLine();
             if (StrUtil.isEmpty(firstLine) || !firstLine.startsWith("Usage:")) {

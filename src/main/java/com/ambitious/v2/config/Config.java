@@ -10,6 +10,8 @@ import com.ambitious.v2.constant.TransferType;
 import com.ambitious.v2.util.CastUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.NumberUtils;
+import com.google.common.collect.Lists;
+import org.bytedeco.ffmpeg.ffmpeg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +37,8 @@ public class Config {
     public static final DownloaderConfig DOWNLOADER;
     public static final TransferConfig TRANSFER;
     public static final DecoderConfig DECODER;
+    public static final String FFMPEG_PATH;
+    public static final String YOUTUBE_DL_PATH;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
@@ -42,6 +47,12 @@ public class Config {
             LogUtils.info(LOGGER, "正在加载配置...");
             // 加载配置
             Map<String, Object> c = loadConfigMap();
+            List<String> paths = readDependencyPaths(CastUtils.cast(c.get("os")));
+            if (paths.size() != 2) {
+                throw new RuntimeException("读取依赖执行路径异常");
+            }
+            FFMPEG_PATH = paths.get(0);
+            YOUTUBE_DL_PATH = paths.get(1);
             SELENIUM = readSeleniumConfig(CastUtils.cast(c.get("selenium")));
             DOWNLOADER = readDownloaderConfig(CastUtils.cast(c.get("downloader")));
             TRANSFER = readTransferConfig(CastUtils.cast(c.get("transfer")));
@@ -50,6 +61,43 @@ public class Config {
         } catch (Exception e) {
             throw new RuntimeException("加载配置文件异常", e);
         }
+    }
+
+    /**
+     * 读取 ffmpeg、youtube-dl 的可执行文件路径
+     * @param os 用户运行的系统环境
+     * @return 路径集合
+     */
+    private static List<String> readDependencyPaths(String os) {
+        List<String> paths = Lists.newArrayList("ffmpeg", "youtube-dl");
+        if (StrUtil.isEmpty(os)) {
+            return paths;
+        }
+        String path = checkPath("config/ffmpeg/ffmpeg-" + os);
+        if (StrUtil.isNotEmpty(path)) {
+            paths.set(0, path);
+        }
+        path = checkPath("config/youtube-dl/youtube-dl-" + os);
+        if (StrUtil.isNotEmpty(path)) {
+            paths.set(1, path);
+        }
+        return paths;
+    }
+
+    /**
+     * 检查路径的文件是否存在
+     * @param path 要检查的路径
+     * @return 检测成功的路径
+     */
+    private static String checkPath(String path) {
+        List<String> validExtensions = Lists.newArrayList("", ".exe", ".sh", ".cmd");
+        for (String ext : validExtensions) {
+            File file = new File(path + ext);
+            if (file.exists()) {
+                return path + ext;
+            }
+        }
+        return null;
     }
 
     public static void load() {}

@@ -23,7 +23,7 @@ public class YtDlHandler {
     public YtDlHandler(String url, YtDlFormatCode formatCode) throws IOException {
         this.expectedUrlNums = formatCode.getExpectedLinkNums();
         List<String> commands = Lists.newArrayList(
-  "youtube-dl",
+  Config.YOUTUBE_DL_PATH,
             "-f", formatCode.getCode(),
             url,
             "--get-url",
