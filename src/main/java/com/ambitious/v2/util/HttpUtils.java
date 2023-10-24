@@ -120,7 +120,7 @@ public class HttpUtils {
             int len = bis.read(buffer, 0, bufferSize);
             while (len > 0) {
                 // 获取令牌
-                if (!Config.DOWNLOADER.RATE_LIMITER.tryAcquire(bufferSize)) {
+                if (!Config.DOWNLOADER.RATE_LIMITER.tryAcquire(len)) {
                     continue;
                 }
                 fos.write(buffer, 0, len);

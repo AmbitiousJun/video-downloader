@@ -45,7 +45,7 @@ public class DownloaderConfig {
                 LogUtils.success(LOGGER, "下载器速率限制：" + rate + kbps);
             }
             if (rateLimit.endsWith(mbps)) {
-                rate = Integer.parseInt(rateLimit.substring(0, rateLimit.length() - mbps.length()));
+                rate = Integer.parseInt(rateLimit.substring(0, rateLimit.length() - mbps.length())) * 1024;
                 LogUtils.success(LOGGER, "下载器速率限制：" + rate + mbps);
             }
         }
