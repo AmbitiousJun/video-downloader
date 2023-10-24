@@ -22,7 +22,14 @@ public class LogUtils {
      * 阻塞日志标志
      */
     public static Boolean BLOCK_FLAG = Boolean.FALSE;
+    /**
+     * 存放日志的队列
+     */
     private static final Deque<LogItem> LOG_QUEUE = Queues.synchronizedDeque(Queues.newArrayDeque());
+    /**
+     * 日志队列的最大长度
+     */
+    public static final Integer LOG_QUEUE_MAX_LENGTH = Integer.MAX_VALUE / 2;
 
     private static class LogItem {
         Logger logger;
@@ -41,6 +48,10 @@ public class LogUtils {
             LOGGER.info("日志输出线程启动成功，开始监听并输出日志...");
             while (true) {
                 if (LOG_QUEUE.isEmpty() || BLOCK_FLAG) {
+                    // 如果日志阻塞队列长度超出预期的最大值，就抛弃掉旧的日志
+                    while (LOG_QUEUE.size() > LOG_QUEUE_MAX_LENGTH) {
+                        LOG_QUEUE.pollFirst();
+                    }
                     SleepUtils.sleep(1000);
                     continue;
                 }

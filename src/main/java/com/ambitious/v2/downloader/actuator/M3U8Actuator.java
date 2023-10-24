@@ -11,10 +11,7 @@ import com.ambitious.v2.constant.FileConstant;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.pojo.TsMeta;
 import com.ambitious.v2.util.*;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,10 +89,11 @@ public abstract class M3U8Actuator implements DownloadActuator {
                 } else if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException("code " + code);
                 }
-                if (response.body() == null) {
+                ResponseBody body = response.body();
+                if (body == null) {
                     throw new RuntimeException("响应体为空");
                 }
-                HttpUtils.downloadStream2File(response.body().byteStream(), ts, response.body().contentLength());
+                HttpUtils.downloadStream2File(body.byteStream(), ts, body.contentLength());
                 return;
             } catch (Exception e) {
                 if (ts.exists() && !ts.delete()) {
