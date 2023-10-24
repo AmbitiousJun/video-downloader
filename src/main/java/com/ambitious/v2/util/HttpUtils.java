@@ -1,6 +1,7 @@
 package com.ambitious.v2.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.ambitious.v2.config.Config;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -109,15 +110,21 @@ public class HttpUtils {
         try (FileOutputStream fos = new FileOutputStream(dest);
              BufferedInputStream bis = new BufferedInputStream(is)
         ) {
-            byte[] buffer = new byte[Long.valueOf(contentLength).intValue() / 2 + 1];
+            // 缓冲区大小不能超过下载器的速率限制
+            int bufferSize = Math.min(1024 * 1024, Config.DOWNLOADER.RATE_LIMIT);
+            byte[] buffer = new byte[bufferSize];
             long curTime = System.currentTimeMillis();
             if (curTime - startTime > READ_TIMEOUT) {
                 throw new RuntimeException("下载超时");
             }
-            int len = bis.read(buffer, 0, buffer.length);
+            int len = bis.read(buffer, 0, bufferSize);
             while (len > 0) {
+                // 获取令牌
+                if (!Config.DOWNLOADER.RATE_LIMITER.tryAcquire(bufferSize)) {
+                    continue;
+                }
                 fos.write(buffer, 0, len);
-                len = bis.read(buffer, 0, buffer.length);
+                len = bis.read(buffer, 0, bufferSize);
             }
         }
     }

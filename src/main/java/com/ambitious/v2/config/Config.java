@@ -11,6 +11,7 @@ import com.ambitious.v2.util.CastUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.NumberUtils;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 import org.bytedeco.ffmpeg.ffmpeg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -159,7 +161,8 @@ public class Config {
         int dlThreadCount = CastUtils.cast(c.get("dl-thread-count"));
         String downloadDir = (String) c.get("download-dir");
         String tsDirSuffix = (String) c.get("ts-dir-suffix");
-        return new DownloaderConfig(use, taskThreadCount, dlThreadCount, downloadDir, tsDirSuffix);
+        String rateLimit = (String) c.get("rate-limit");
+        return new DownloaderConfig(use, taskThreadCount, dlThreadCount, downloadDir, tsDirSuffix, rateLimit);
     }
 
     /**
