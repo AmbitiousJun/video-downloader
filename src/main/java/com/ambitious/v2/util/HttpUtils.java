@@ -1,6 +1,7 @@
 package com.ambitious.v2.util;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.IdUtil;
 import com.ambitious.v2.config.Config;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
@@ -106,25 +107,28 @@ public class HttpUtils {
      */
     public static void downloadStream2File(InputStream is, File dest, long contentLength) throws IOException {
         long startTime = System.currentTimeMillis();
+        String traceId = IdUtil.simpleUUID();
+        // LogUtils.warning(LOGGER, String.format("流大小：%s, traceId: %s", contentLength, traceId));
         LogUtils.info(LOGGER, String.format("正在下载流，大小：%.2f MB, 文件名：%s", Long.valueOf(contentLength).doubleValue() / 1024 / 1024, dest.getName()));
         try (FileOutputStream fos = new FileOutputStream(dest);
              BufferedInputStream bis = new BufferedInputStream(is)
         ) {
             // 缓冲区大小不能超过下载器的速率限制
-            int bufferSize = Math.min(1024 * 1024, Config.DOWNLOADER.RATE_LIMIT);
-            byte[] buffer = new byte[bufferSize];
+            byte[] buffer = new byte[1024 * 1024];
             long curTime = System.currentTimeMillis();
             if (curTime - startTime > READ_TIMEOUT) {
                 throw new RuntimeException("下载超时");
             }
-            int len = bis.read(buffer, 0, bufferSize);
+            MyTokenBucket bucket = Config.DOWNLOADER.TOKEN_BUCKET;
+            // 获取当前能够读取的字节数
+            int consume = bucket.tryConsume(buffer.length);
+            int len = bis.read(buffer, 0, consume);
             while (len > 0) {
-                // 获取令牌
-                if (!Config.DOWNLOADER.RATE_LIMITER.tryAcquire(len)) {
-                    continue;
-                }
+                // LogUtils.warning(LOGGER, String.format("读取到的字节数：%s, traceId: %s", len, traceId));
+                LogUtils.warning(LOGGER, String.format("consume：%s，读取到的字节数：%s，实际的字节数：%s", consume, len, Long.valueOf(contentLength).doubleValue()));
                 fos.write(buffer, 0, len);
-                len = bis.read(buffer, 0, bufferSize);
+                consume = bucket.tryConsume(buffer.length);
+                len = bis.read(buffer, 0, consume);
             }
         }
     }

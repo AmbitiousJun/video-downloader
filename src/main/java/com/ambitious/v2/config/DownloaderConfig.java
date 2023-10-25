@@ -3,6 +3,7 @@ package com.ambitious.v2.config;
 import cn.hutool.core.util.StrUtil;
 import com.ambitious.v2.constant.DownloaderType;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.MyTokenBucket;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,8 +25,7 @@ public class DownloaderConfig {
     public final Integer DL_THREAD_COUNT;
     public final String DOWNLOAD_DIR;
     public final String TS_DIR_SUFFIX;
-    public final Integer RATE_LIMIT;
-    public final RateLimiter RATE_LIMITER;
+    public final MyTokenBucket TOKEN_BUCKET;
 
     public DownloaderConfig(DownloaderType use, int taskThreadCount, int dlThreadCount, String downloadDir, String tsDirSuffix, String rateLimit) {
         if (StrUtil.isEmpty(downloadDir)) {
@@ -36,20 +36,22 @@ public class DownloaderConfig {
         this.TASK_THREAD_COUNT = taskThreadCount > 0 ? taskThreadCount : 2;
         this.DL_THREAD_COUNT = dlThreadCount > 0 ? dlThreadCount : 32;
         this.TS_DIR_SUFFIX = StrUtil.isNotEmpty(tsDirSuffix) ? tsDirSuffix : "temp_ts_files";
-        int rate = 5 * 1024;
+        // 默认速率是 5mbps
+        int rate = 5 * 1024 * 1024;
         final String kbps = "kbps";
         final String mbps = "mbps";
         if (StrUtil.isNotEmpty(rateLimit)) {
             if (rateLimit.endsWith(kbps)) {
                 rate = Integer.parseInt(rateLimit.substring(0, rateLimit.length() - kbps.length()));
                 LogUtils.success(LOGGER, "下载器速率限制：" + rate + kbps);
+                rate *= 1024;
             }
             if (rateLimit.endsWith(mbps)) {
-                rate = Integer.parseInt(rateLimit.substring(0, rateLimit.length() - mbps.length())) * 1024;
+                rate = Integer.parseInt(rateLimit.substring(0, rateLimit.length() - mbps.length()));
                 LogUtils.success(LOGGER, "下载器速率限制：" + rate + mbps);
+                rate *= 1024 * 1024;
             }
         }
-        this.RATE_LIMIT = rate;
-        this.RATE_LIMITER = RateLimiter.create(this.RATE_LIMIT);
+        this.TOKEN_BUCKET = new MyTokenBucket(rate);
     }
 }
