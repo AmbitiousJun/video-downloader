@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -106,30 +107,25 @@ public class HttpUtils {
      * @param dest 目标文件
      */
     public static void downloadStream2File(InputStream is, File dest, long contentLength) throws IOException {
-        long startTime = System.currentTimeMillis();
         String traceId = IdUtil.simpleUUID();
         // LogUtils.warning(LOGGER, String.format("流大小：%s, traceId: %s", contentLength, traceId));
         LogUtils.info(LOGGER, String.format("正在下载流，大小：%.2f MB, 文件名：%s", Long.valueOf(contentLength).doubleValue() / 1024 / 1024, dest.getName()));
-        try (FileOutputStream fos = new FileOutputStream(dest);
+        try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(dest.toPath()));
              BufferedInputStream bis = new BufferedInputStream(is)
         ) {
             // 缓冲区大小不能超过下载器的速率限制
             byte[] buffer = new byte[1024 * 1024];
-            long curTime = System.currentTimeMillis();
-            if (curTime - startTime > READ_TIMEOUT) {
-                throw new RuntimeException("下载超时");
-            }
             MyTokenBucket bucket = Config.DOWNLOADER.TOKEN_BUCKET;
             // 获取当前能够读取的字节数
-            int consume = bucket.tryConsume(buffer.length);
-            int len = bis.read(buffer, 0, consume);
+            int len = bis.read(buffer, 0, bucket.tryConsume(buffer.length));
+            LogUtils.warning(LOGGER, "首次读取得到的 len: " + len);
             while (len > 0) {
-                // LogUtils.warning(LOGGER, String.format("读取到的字节数：%s, traceId: %s", len, traceId));
-                LogUtils.warning(LOGGER, String.format("consume：%s，读取到的字节数：%s，实际的字节数：%s", consume, len, Long.valueOf(contentLength).doubleValue()));
-                fos.write(buffer, 0, len);
-                consume = bucket.tryConsume(buffer.length);
-                len = bis.read(buffer, 0, consume);
+                // LogUtils.warning(LOGGER, String.format("consume：%s，读取到的字节数：%s，实际的字节数：%s", consume, len, Long.valueOf(contentLength).doubleValue()));
+                bos.write(buffer, 0, len);
+                LogUtils.warning(LOGGER, "成功写入 " + len + " 字节");
+                len = bis.read(buffer, 0, bucket.tryConsume(buffer.length));
             }
+            LogUtils.success(LOGGER, "下载结束");
         }
     }
 }
