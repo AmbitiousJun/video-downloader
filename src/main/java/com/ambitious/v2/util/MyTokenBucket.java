@@ -24,11 +24,6 @@ public class MyTokenBucket {
     private final Integer refillRate;
 
     /**
-     * 最少消耗的令牌数
-     */
-    private final Integer minConsume;
-
-    /**
      * 最后一次补充令牌的时间
      */
     private Long lastRefillTime;
@@ -38,8 +33,6 @@ public class MyTokenBucket {
         this.refillRate = refillRate;
         this.tokens = 0;
         this.lastRefillTime = System.currentTimeMillis();
-        // 最少消耗的 10 KB 的令牌
-        this.minConsume = 10 * 1024;
     }
 
     /**
@@ -51,10 +44,7 @@ public class MyTokenBucket {
         // 1 补充令牌
         refillTokens();
         // 2 计算出当前能够消耗的令牌数
-        int consume;
-        while ((consume = Math.min(this.tokens, request)) < minConsume) {
-            SleepUtils.sleep(50);
-        }
+        int consume = Math.min(this.tokens, request);
         this.tokens -= consume;
         return consume;
     }
