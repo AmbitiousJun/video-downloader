@@ -2,11 +2,15 @@ package com.ambitious.v2.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.ambitious.v2.config.Config;
 import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +18,13 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author ambitious
@@ -33,6 +42,16 @@ public class HttpUtils {
      * 读取数据的超时时间
      */
     public static final Integer READ_TIMEOUT = 120 * 1000;
+
+    /**
+     * 用于匹配出 Http 请求头中 Ranges 的值
+     */
+    public static final Pattern HTTP_HEADER_RANGES_PATTERN = Pattern.compile("bytes=(\\d*)-(\\d*)");
+
+    /**
+     * Range 请求头 key
+     */
+    public static final String HTTP_HEADER_RANGES_KEY = "Range";
 
     /**
      * 生成 HttpConnection 的参数
@@ -102,30 +121,159 @@ public class HttpUtils {
     }
 
     /**
-     * 将输入流输出到文件中，根据类上的读取超时常量进行超时控制
+     * 具备超时控制的 okHttpClient
+     */
+    private static class MyOkHttpClientHolder {
+        static final OkHttpClient CLIENT = new OkHttpClient.Builder()
+                                              .callTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                                              .readTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                                              .build();
+    }
+
+    public static OkHttpClient getOkHttpClient() {
+        return MyOkHttpClientHolder.CLIENT;
+    }
+
+    /**
+     * 下载一个网络资源到本地的文件上，并进行网络限速
+     * @param request 构造好的 okhttp 请求对象
+     * @param dest 要下载到本地的哪一个文件上
+     * @throws Exception 下载过程中可能发生的任何异常
+     */
+    public static void downloadWithRateLimit(Request request, File dest) throws Exception {
+        String url = request.url().url().toString();
+        String method = request.method();
+        Map<String, String> headers = multiMap2HashMap(request.headers().toMultimap());
+        // 1 预请求，获取要下载文件的总大小
+        long[] ranges = getRequestRanges(url, method, headers);
+        // 2 分割文件进行下载，每次下载前先到令牌桶中获取能够下载的字节数
+        // 3 将请求下来的文件分片，使用 RandomAccessFile 写入到目的文件中
+        // 4 所有文件下载完成后，校验目标文件的大小是否是最初文件的总大小
+    }
+
+    /**
+     * 下载文件时，可以添加 Range 请求头来请求文件的部分字节
+     * 本方法返回的是要请求的 url 的字节范围
+     * 如果 headers 中已经存在 Range 头，直接返回
+     * 否则发送 http 请求获取 contentLength，返回值是 [0, contentLength]
+     * @param url 要请求的目的 url
+     * @param method 请求方法
+     * @param headers 请求头
+     * @return 字节范围
+     */
+    public static long[] getRequestRanges(String url, String method, Map<String, String> headers) throws Exception {
+        if (StrUtil.isEmpty(url) || headers == null) {
+            throw new IllegalArgumentException("url 和 headers 必传");
+        }
+        method = Optional.ofNullable(method).orElse("GET");
+        String range = headers.getOrDefault(HTTP_HEADER_RANGES_KEY, null);
+        range = headers.getOrDefault(HTTP_HEADER_RANGES_KEY.toLowerCase(), range);
+        if (StrUtil.isEmpty(range)) {
+            // 请求头中没有 Range，就返回 [0, contentLength]
+            return getRequestRanges(url, method, headers, 0);
+        }
+        Matcher m = HTTP_HEADER_RANGES_PATTERN.matcher(range);
+        if (!m.find()) {
+            // 请求头不合法，忽略
+            return getRequestRanges(url, method, headers, 0);
+        }
+        String from = m.group(1);
+        String to = m.group(2);
+        // from to 全空，是无效的 Range 头，直接去除
+        if (StrUtil.isAllEmpty(from, to)) {
+            headers.remove(HTTP_HEADER_RANGES_KEY);
+            headers.remove(HTTP_HEADER_RANGES_KEY.toLowerCase());
+            return getRequestRanges(url, method, headers);
+        }
+        // 有 from 没 to，to 直接取 Content-Length
+        if (StrUtil.isNotEmpty(from) && StrUtil.isEmpty(to)) {
+            return getRequestRanges(url, method, headers, Long.parseLong(from));
+        }
+        // 两者都有，直接返回
+        from = StrUtil.isEmpty(from) ? "0" : from;
+        return new long[] { Long.parseLong(from), Long.parseLong(to) };
+    }
+
+    /**
+     * 下载文件时，可以添加 Range 请求头来请求文件的部分字节
+     * 本方法返回的是要请求的 url 的字节范围
+     * 发送 http 请求获取 contentLength，返回值是 [from, contentLength]
+     * @param url 要请求的目的 url
+     * @param method 请求方法
+     * @param headers 请求头
+     * @param from 作为返回值数组中的第一个值
+     * @return 字节范围
+     */
+    public static long[] getRequestRanges(String url, String method, Map<String, String> headers, long from) throws Exception {
+        if (StrUtil.isEmpty(url) || headers == null) {
+            throw new IllegalArgumentException("url 和 headers 必传");
+        }
+        // 先移除掉请求头 Range
+        headers.remove(HTTP_HEADER_RANGES_KEY);
+        headers.remove(HTTP_HEADER_RANGES_KEY.toLowerCase());
+        HttpURLConnection conn = genHttpConnection(new HttpOptions(url, method, headers));
+        try {
+            // 防止远程返回的资源太大导致线程阻塞
+            conn.setRequestProperty("Connection", "Close");
+            conn.connect();
+            int code = conn.getResponseCode();
+            if (!is2xxSuccess(code)) {
+                throw new IOException("连接远程 url 失败");
+            }
+            long contentLength = conn.getContentLengthLong();
+            if (contentLength == -1) {
+                throw new IOException("无法获取资源的 Content-Length 属性");
+            }
+            return new long[] { from, contentLength };
+        } finally {
+            closeConn(conn);
+        }
+    }
+
+    /**
+     * 判断一个 http 请求的响应码是否是 2xx 类型的成功码
+     * @param code 响应码
+     * @return 是否 2xx
+     */
+    public static boolean is2xxSuccess(int code) {
+        String codeStr = String.valueOf(code);
+        return codeStr.startsWith("2");
+    }
+
+    /**
+     * 将 okhttp 内部的 MultiMap 转换为普通的 HashMap
+     * @param multiMap okhttp 内部的 MultiMap
+     * @return 普通的 HashMap
+     */
+    public static Map<String, String> multiMap2HashMap(Map<String, List<String>> multiMap) {
+        Map<String, String> res = Maps.newHashMap();
+        for (String key : multiMap.keySet()) {
+            List<String> values = multiMap.get(key);
+            for (String value : values) {
+                res.put(key, value);
+            }
+        }
+        return res;
+    }
+
+    /**
+     * 将输入流输出到文件中
      * @param is 输入流
      * @param dest 目标文件
      */
     public static void downloadStream2File(InputStream is, File dest, long contentLength) throws IOException {
-        String traceId = IdUtil.simpleUUID();
-        // LogUtils.warning(LOGGER, String.format("流大小：%s, traceId: %s", contentLength, traceId));
         LogUtils.info(LOGGER, String.format("正在下载流，大小：%.2f MB, 文件名：%s", Long.valueOf(contentLength).doubleValue() / 1024 / 1024, dest.getName()));
         try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(dest.toPath()));
              BufferedInputStream bis = new BufferedInputStream(is)
         ) {
             // 缓冲区大小不能超过下载器的速率限制
             byte[] buffer = new byte[1024 * 1024];
-            MyTokenBucket bucket = Config.DOWNLOADER.TOKEN_BUCKET;
             // 获取当前能够读取的字节数
-            int len = bis.read(buffer, 0, bucket.tryConsume(buffer.length));
-            LogUtils.warning(LOGGER, "首次读取得到的 len: " + len);
+            int len = bis.read(buffer, 0, buffer.length);
             while (len > 0) {
-                // LogUtils.warning(LOGGER, String.format("consume：%s，读取到的字节数：%s，实际的字节数：%s", consume, len, Long.valueOf(contentLength).doubleValue()));
                 bos.write(buffer, 0, len);
-                LogUtils.warning(LOGGER, "成功写入 " + len + " 字节");
-                len = bis.read(buffer, 0, bucket.tryConsume(buffer.length));
+                len = bis.read(buffer, 0, buffer.length);
             }
-            LogUtils.success(LOGGER, "下载结束");
         }
     }
 }
