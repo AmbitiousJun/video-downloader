@@ -27,7 +27,7 @@
 
 直接到官网[下载页](https://ffmpeg.org/download.html)下载可执行文件，并将 `ffmpeg` 配置到**环境变量**中。
 
-> 1.1.4 版本之后，可以直接将可执行文件放到 config 目录下，无需配到环境变量，注意文件名规范即可
+> 1.2.0 版本之后，可以直接将可执行文件放到 config 目录下，无需配到环境变量，注意文件名规范即可
 
 在终端任意目录下执行 `ffmpeg -version` 能够正常输出即可：
 
@@ -37,7 +37,7 @@
 
 推荐下载 [yt-dlp](https://github.com/yt-dlp/yt-dlp)，安装完成后，**请到可执行文件所在路径，将 `yt-dlp` 文件名修改为 `youtube-dl` 或者添加一个软链接**
 
-> 1.1.4 版本之后，可以直接将可执行文件放到 config 目录下，无需配到环境变量，注意文件名规范即可
+> 1.2.0 版本之后，可以直接将可执行文件放到 config 目录下，无需配到环境变量，注意文件名规范即可
 
 在终端任意目录下执行 `youtube-dl --version` 能够正常输出即可：
 
@@ -52,15 +52,15 @@
 1. 下载压缩包，解压
 
 ```shell
-curl -L -o video-downloader-1.1.4.zip https://github.com/AmbitiousJun/video-downloader/releases/download/v1.1.4/video-downloader-1.1.4.zip
+curl -L -o video-downloader-1.2.0.zip https://github.com/AmbitiousJun/video-downloader/releases/download/v1.2.0/video-downloader-1.2.0.zip
 
-unzip ./video-downloader-1.1.4.zip
+unzip ./video-downloader-1.2.0.zip
 ```
 
 2. 复制一份配置文件
 
 ```shell
-cd video-downloader-1.1.4/config
+cd video-downloader-1.2.0/config
 cp config-example.yml config.yml
 ```
 
