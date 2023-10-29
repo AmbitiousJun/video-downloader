@@ -6,6 +6,7 @@ import cn.hutool.http.HttpUtil;
 import com.ambitious.v2.pojo.DownloadMeta;
 import com.ambitious.v2.util.HttpUtils;
 import com.ambitious.v2.util.LogUtils;
+import com.ambitious.v2.util.SleepUtils;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,26 +36,19 @@ public class Mp4SimpleActuator implements DownloadActuator{
     @Override
     @SuppressWarnings("all")
     public void download(DownloadMeta meta) throws Exception {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .callTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                .readTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                .build();
         Request request = new Request.Builder()
                 .url(meta.getLink())
-                .headers(Headers.of(meta.getHeaderMap()))
+                .headers(Headers.of(HttpUtils.genDefaultHeaderMapByUrl(meta.getHeaderMap(), meta.getLink())))
                 .get().build();
-        try (Response response = client.newCall(request).execute()) {
-            int code = response.code();
-            if (code == HttpStatus.HTTP_MOVED_PERM || code == HttpStatus.HTTP_MOVED_PERM) {
-                meta.setLink(response.header("Location"));
-                download(meta);
-            } else if (code != HttpStatus.HTTP_OK) {
-                throw new RuntimeException("下载失败，code：" + code);
-            }
-            File dest = new File(meta.getFileName());
-            HttpUtils.downloadStream2File(response.body().byteStream(), dest, Long.valueOf(Optional.ofNullable(response.header("Content-Length")).orElse("0")));
+        File dest = new File(meta.getFileName());
+        try {
+            LogUtils.info(LOGGER, "开始下载：" + meta.getFileName());
+            HttpUtils.downloadWithRateLimit(request, dest);
+            LogUtils.success(LOGGER, "下载完成：" + meta.getFileName());
         } catch (Exception e) {
-            throw new RuntimeException("下载失败", e);
+            LogUtils.warning(LOGGER, "下载异常，两秒后重试");
+            SleepUtils.sleep(2000);
+            download(meta);
         }
     }
 }

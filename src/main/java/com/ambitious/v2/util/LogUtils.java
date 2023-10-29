@@ -31,6 +31,16 @@ public class LogUtils {
      */
     public static final Integer LOG_QUEUE_MAX_LENGTH = Integer.MAX_VALUE / 2;
 
+    /**
+     * 将日志队列中的所有日志都清空掉然后退出程序
+     */
+    public static void flushAndExit() {
+        while (!LOG_QUEUE.isEmpty()) {
+            SleepUtils.sleep(1000);
+        }
+        System.exit(-1);
+    }
+
     private static class LogItem {
         Logger logger;
         String type;

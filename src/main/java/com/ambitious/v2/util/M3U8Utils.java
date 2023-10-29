@@ -70,33 +70,23 @@ public class M3U8Utils {
             try {
                 conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(url, headerMap));
                 conn.setRequestProperty("Connection", "Close");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                conn.setRequestMethod("HEAD");
+                conn.connect();
                 int code = conn.getResponseCode();
                 if (code != HttpStatus.HTTP_OK) {
-                    throw new RuntimeException();
+                    throw new RuntimeException("错误码：" + code);
                 }
                 String contentType = conn.getHeaderField("Content-Type");
                 if (StrUtil.isEmpty(contentType)) {
-                    throw new RuntimeException();
+                    throw new RuntimeException("获取不到 Content-Type 属性");
                 }
                 contentType = contentType.toLowerCase().split(";")[0];
-                if (!VALID_M3U8_CONTENT_TYPES.contains(contentType)) {
-                    return false;
-                }
-                String line = reader.readLine();
-                if (StrUtil.isEmpty(line)) {
-                    return false;
-                }
-                String valid = "#EXTM3U";
-                line = line.substring(0, Math.min(valid.length(), line.length()));
-                return line.equalsIgnoreCase(valid);
+                return VALID_M3U8_CONTENT_TYPES.contains(contentType);
             } catch (Exception e) {
                 LogUtils.warning(LOGGER, String.format("解析异常：%s，两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);
             } finally {
-                if (conn != null) {
-                    conn.disconnect();
-                }
+                HttpUtils.closeConn(conn);
             }
         }
     }

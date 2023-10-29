@@ -68,33 +68,14 @@ public abstract class M3U8Actuator implements DownloadActuator {
             LogUtils.warning(LOGGER, "分片已存在，跳过下载");
             return;
         }
-        OkHttpClient client = new OkHttpClient.Builder()
-                                .callTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                                .readTimeout(HttpUtils.READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                                .build();
         Request request = new Request.Builder()
                                 .url(tsMeta.getUrl())
                                 .headers(Headers.of(meta.getHeaderMap()))
                                 .build();
         while (true) {
-            try (Response response = client.newCall(request).execute()) {
-                int code = response.code();
-                if (code == HttpStatus.HTTP_MOVED_TEMP || code == HttpStatus.HTTP_MOVED_PERM) {
-                    String location = response.header("Location");
-                    if (StrUtil.isEmpty(location)) {
-                        throw new RuntimeException("重定向异常");
-                    }
-                    tsMeta.setUrl(location);
-                    coreDownload(meta, tsMeta, tempDir);
-                } else if (code != HttpStatus.HTTP_OK) {
-                    throw new RuntimeException("code " + code);
-                }
-                ResponseBody body = response.body();
-                if (body == null) {
-                    throw new RuntimeException("响应体为空");
-                }
-                HttpUtils.downloadStream2File(body.byteStream(), ts, body.contentLength());
-                return;
+            try {
+                HttpUtils.downloadWithRateLimit(request, ts);
+                break;
             } catch (Exception e) {
                 if (ts.exists() && !ts.delete()) {
                     LogUtils.error(LOGGER, String.format("分片下载失败，临时文件删除失败, 文件名：%s", ts.getName()));

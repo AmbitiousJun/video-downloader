@@ -8,9 +8,7 @@ import com.google.common.collect.Maps;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +32,16 @@ public class HttpUtils {
 
 
     public static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
+
     /**
      * 建立连接的超时时间
      */
-    public static final Integer CONNECT_TIMEOUT = 30 * 1000;
+    public static final Integer CONNECT_TIMEOUT = 60 * 1000;
+
     /**
      * 读取数据的超时时间
      */
-    public static final Integer READ_TIMEOUT = 120 * 1000;
+    public static final Integer READ_TIMEOUT = 300 * 1000;
 
     /**
      * 用于匹配出 Http 请求头中 Ranges 的值
@@ -86,6 +86,7 @@ public class HttpUtils {
      * @param url 需要检测的 url
      * @return headerMap
      */
+    @SuppressWarnings("all")
     public static Map<String, String> genDefaultHeaderMapByUrl(Map<String, String> baseMap, String url) {
         Map<String, String> m = baseMap == null ? Maps.newHashMap() : baseMap;
         final String mg = "mgtv.com";
@@ -146,9 +147,44 @@ public class HttpUtils {
         Map<String, String> headers = multiMap2HashMap(request.headers().toMultimap());
         // 1 预请求，获取要下载文件的总大小
         long[] ranges = getRequestRanges(url, method, headers);
+        removeRangeHeader(headers);
+        long start = ranges[0];
+        long end = ranges[1];
         // 2 分割文件进行下载，每次下载前先到令牌桶中获取能够下载的字节数
-        // 3 将请求下来的文件分片，使用 RandomAccessFile 写入到目的文件中
-        // 4 所有文件下载完成后，校验目标文件的大小是否是最初文件的总大小
+        MyTokenBucket bucket = Config.DOWNLOADER.TOKEN_BUCKET;
+        OkHttpClient client = getOkHttpClient();
+        try (RandomAccessFile file = new RandomAccessFile(dest, "rw")) {
+            while (start < end) {
+                long consume = bucket.tryConsume(end - start);
+                if (consume <= 0) {
+                    // 抢不到令牌，睡眠一小会，防止过度消耗系统资源
+                    SleepUtils.sleep(100);
+                    continue;
+                }
+                String rangeHeader = String.format("bytes=%s-%s", start, start + consume);
+                // 请求部分资源
+                Request subRequest = new Request.Builder(request)
+                        .header(HTTP_HEADER_RANGES_KEY, rangeHeader)
+                        .build();
+                try (Response resp = client.newCall(subRequest).execute()) {
+                    int code = resp.code();
+                    if (!is2xxSuccess(code)) {
+                        throw new IOException("错误码：" + code);
+                    }
+                    ResponseBody body = resp.body();
+                    if (body == null) {
+                        throw new IOException("响应体为空");
+                    }
+                    // 3 将请求下来的文件分片，使用 RandomAccessFile 写入到目的文件中
+                    file.seek(start);
+                    file.write(body.bytes());
+                    start += consume;
+                } catch (Exception e) {
+                    LogUtils.warning(LOGGER, String.format("分片下载异常：%s，两秒后重试", e.getMessage()));
+                    SleepUtils.sleep(2000);
+                }
+            }
+        }
     }
 
     /**
@@ -181,8 +217,7 @@ public class HttpUtils {
         String to = m.group(2);
         // from to 全空，是无效的 Range 头，直接去除
         if (StrUtil.isAllEmpty(from, to)) {
-            headers.remove(HTTP_HEADER_RANGES_KEY);
-            headers.remove(HTTP_HEADER_RANGES_KEY.toLowerCase());
+            removeRangeHeader(headers);
             return getRequestRanges(url, method, headers);
         }
         // 有 from 没 to，to 直接取 Content-Length
@@ -192,6 +227,15 @@ public class HttpUtils {
         // 两者都有，直接返回
         from = StrUtil.isEmpty(from) ? "0" : from;
         return new long[] { Long.parseLong(from), Long.parseLong(to) };
+    }
+
+    /**
+     * 移除 Range 请求头
+     * @param headers 要移除的 map 对象
+     */
+    public static void removeRangeHeader(Map<String, String> headers) {
+        headers.remove(HTTP_HEADER_RANGES_KEY);
+        headers.remove(HTTP_HEADER_RANGES_KEY.toLowerCase());
     }
 
     /**
@@ -208,13 +252,10 @@ public class HttpUtils {
         if (StrUtil.isEmpty(url) || headers == null) {
             throw new IllegalArgumentException("url 和 headers 必传");
         }
-        // 先移除掉请求头 Range
-        headers.remove(HTTP_HEADER_RANGES_KEY);
-        headers.remove(HTTP_HEADER_RANGES_KEY.toLowerCase());
+        removeRangeHeader(headers);
         HttpURLConnection conn = genHttpConnection(new HttpOptions(url, method, headers));
         try {
-            // 防止远程返回的资源太大导致线程阻塞
-            conn.setRequestProperty("Connection", "Close");
+            conn.setRequestMethod("HEAD");
             conn.connect();
             int code = conn.getResponseCode();
             if (!is2xxSuccess(code)) {

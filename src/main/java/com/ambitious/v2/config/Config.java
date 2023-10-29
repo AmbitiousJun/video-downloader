@@ -10,6 +10,7 @@ import com.ambitious.v2.constant.TransferType;
 import com.ambitious.v2.util.CastUtils;
 import com.ambitious.v2.util.LogUtils;
 import com.ambitious.v2.util.NumberUtils;
+import com.ambitious.v2.util.SleepUtils;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import org.bytedeco.ffmpeg.ffmpeg;
@@ -45,6 +46,7 @@ public class Config {
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
     static {
+        boolean flag = false;
         try {
             LogUtils.info(LOGGER, "正在加载配置...");
             // 加载配置
@@ -60,8 +62,14 @@ public class Config {
             TRANSFER = readTransferConfig(CastUtils.cast(c.get("transfer")));
             DECODER = readDecoderConfig(CastUtils.cast(c.get("decoder")));
             LogUtils.success(LOGGER, "配置加载完成");
+            flag = true;
         } catch (Exception e) {
-            throw new RuntimeException("加载配置文件异常", e);
+            LogUtils.error(LOGGER, "配置文件加载异常，" + e.getMessage());
+            throw new RuntimeException();
+        } finally {
+            if (!flag) {
+                LogUtils.flushAndExit();
+            }
         }
     }
 
@@ -152,16 +160,16 @@ public class Config {
     private static DownloaderConfig readDownloaderConfig(Map<String, Object> c) {
         DownloaderType use;
         try {
-            String useStr = (String) c.get("use");
+            String useStr = String.valueOf(c.get("use"));
             use = DownloaderType.valueOf(useStr.toUpperCase().replaceAll("-", "_"));
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("下载器类型配置错误，可选值：simple, multi-thread");
         }
         int taskThreadCount = CastUtils.cast(c.get("task-thread-count"));
         int dlThreadCount = CastUtils.cast(c.get("dl-thread-count"));
-        String downloadDir = (String) c.get("download-dir");
-        String tsDirSuffix = (String) c.get("ts-dir-suffix");
-        String rateLimit = (String) c.get("rate-limit");
+        String downloadDir = String.valueOf(c.get("download-dir"));
+        String tsDirSuffix = String.valueOf(c.get("ts-dir-suffix"));
+        String rateLimit = String.valueOf(c.get("rate-limit"));
         return new DownloaderConfig(use, taskThreadCount, dlThreadCount, downloadDir, tsDirSuffix, rateLimit);
     }
 

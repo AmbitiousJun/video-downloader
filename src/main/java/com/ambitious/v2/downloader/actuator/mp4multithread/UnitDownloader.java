@@ -62,12 +62,6 @@ public class UnitDownloader {
      * 下载分片
      */
     public void download(AtomicLong fileCurSize) throws Exception {
-        // 按照 200 KB/s 的下载速度计算超时时间
-        long timeout = Math.max(5 * 60 * 1000, (this.to - this.from) / 1024 / 200 * 1000);
-        OkHttpClient client = new OkHttpClient.Builder()
-                .readTimeout(timeout, TimeUnit.MILLISECONDS)
-                .callTimeout(timeout, TimeUnit.MILLISECONDS)
-                .build();
         Map<String, String> defaultHeaders = HttpUtils.genDefaultHeaderMapByUrl(null, this.url);
         Request request = new Request.Builder()
                 .url(this.url)
@@ -75,30 +69,11 @@ public class UnitDownloader {
                 .header("Range", String.format("bytes=%d-%d", this.from, this.to))
                 .build();
         while (true) {
-            try (Response response = client.newCall(request).execute()) {
-                if (response.body() == null) {
-                    throw new RuntimeException("响应体为空");
-                }
-                if (!response.isSuccessful()) {
-                    throw new RuntimeException(response.body().string());
-                }
-                LogUtils.info(LOGGER, String.format("分片即将开始下载，超时时间为：%d 秒", timeout / 1000));
-                InputStream is = response.body().byteStream();
-                long streamLength = response.body().contentLength();
-                LogUtils.info(LOGGER, String.format("分片实际大小：%.2f MB", Long.valueOf(streamLength).doubleValue() / 1024 / 1024));
-                try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
-                    // 定位到文件中该分片的位置
-                    file.seek(this.from);
-                    // 缓冲区
-                    byte[] buffer = new byte[Long.valueOf(streamLength).intValue() / 2 + 1];
-                    int len = is.read(buffer, 0, buffer.length);
-                    while (len > 0) {
-                        file.write(buffer, 0, len);
-                        len = is.read(buffer, 0, buffer.length);
-                    }
-                    fileCurSize.addAndGet(this.to - this.from);
-                }
-                return;
+            try {
+                LogUtils.info(LOGGER, String.format("分片即将开始下载，大小：%.2f MB", 1.0 * (this.to - this.from) / 1024 / 1024));
+                HttpUtils.downloadWithRateLimit(request, this.dest);
+                fileCurSize.addAndGet(this.to - this.from);
+                break;
             } catch (Exception e) {
                 LogUtils.warning(LOGGER, String.format("分片下载失败：%s，两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);

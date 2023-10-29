@@ -1,7 +1,11 @@
 package com.ambitious;
 
+import com.ambitious.v2.config.Config;
 import com.ambitious.v2.util.HttpUtils;
+import okhttp3.Headers;
+import okhttp3.Request;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +17,20 @@ import java.util.Map;
 public class HttpUtilsTest {
 
     public static void main(String[] args) throws Exception {
-        testGetRequestRange();
+        testDownloadWithRateLimit();
+    }
+
+    public static void testDownloadWithRateLimit() throws Exception {
+        Config.load();
+        String url = "https://pcvideomigu.titan.mgtv.com/c1/2023/10/28_0/198F36FA586D55B87A7F23026F190723_20231028_1_1_2538_mp4/B2F18BD0C5CD1588DC2B3FA29F0DF238_0_5080_3116_v02_mp4.ts?arange=0&pm=~TULvUEZ~0bilw1ycEyBg~0iMChdAJ5vJTMkIOOT7xyCGh7Msst9eeWcLWx4dnPNjpiBes1Zwx~3wIp3TGGHJvsjr73w46NxinteDpsp2K8hBSz1tdpi4Zm~og3YhWyYmU_16~G6tU~klg57WXK1N2GMm__4R9sGk4bK_Nf4EaWvjtka0ZxmnXy0dTO2kyNddqPMwfvZLYShAmoyuFCmDlqZs1ipWQ2O96Vpbv1xWiIJZr_T_rq_9_2cf5SAo6xVArhseG9A~~EaufKnF7WDZ6M5jaWiacIiBASPc9N_o4Lz_s6WsS93NQL_KJZ7QTvD4UZqyzK0_kZ57BQYGQfYmAWh0s_vmT4S8mdWLmkyaDIASGrxdQVcZEAHs8_L9PwjwJw73c9ot1BEVX2woDUKNDG9vaNR3Gc3cJF0jEurVS3ZTZs9QjF34SPcG8B464mM59rubtfIx8s-&mr=CrVpfNLygONAoLlROagXe9A2xELSqH4NFZtMYeJ7tDIcmDw_H0jQ_klwFxO5cLIRn8BYzKN_aMp4tw131iLGbdy~YhKmgXWtaQVyIxSmNCwoCLGXe10mbckhSLM7U0LEX1b5udC_60L6zVZ6cTc6HeqHgBXiNYft46UsZBWAajtXwaSIQ21EYIOl2qrgmHxjeqgiZgm3GTmDE345wh8yEBTfKrtx6XD0vEMbTsCUQ~0u6SYxS2N4MsXYMTNe_4Kqy1ImyQLAEVsfSjV~OJW4bYaU0lZnzZEYCz3xKM0sD8mVap8CWab5ZCkvr4Bm2MKP70uXTjw4tXsmNFSkmFmxRxXNKmctxP7hUmIKY~K~2nne6NwCz5TUcchGgpHhkRw0kYDIZIpfu8rjca66puTLAzkE1o06Bf6A4ywd_KhuBUtMS8pdb9KwdizvISAUJHMHJKs7am30Tpk~p2YREDB_R6JYSXwJb9NZi9ehJjH4Zfye42cEJetaEQMjyN1PsyDLc4USLcVkAyDh~FZktthJ4qPnNXe5~0lsMf94Km~Mf1625CoJKnLtEw31TowICkuZu0eOSZM1gjvlEIwi1Tw3xHBWW6aA~VPWEKzXNGMfG~nbWDU88CfkyVajxtfCth_yQwe3SGWCfpOt24UjC2ZLEA--&uid=e4f3fabc8ec345b49c021c67e1c2a082&scid=25121&cpno=6i06rp&ruid=4ba4d6941cb24986&sh=1";
+        File dest = new File("/Users/ambitious/Downloads/test.ts");
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(Headers.of(HttpUtils.genDefaultHeaderMapByUrl(null, url)))
+                .get()
+                .build();
+        HttpUtils.downloadWithRateLimit(request, dest);
+        System.exit(0);
     }
 
     public static void testGetRequestRange() throws Exception {
