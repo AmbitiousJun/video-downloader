@@ -29,7 +29,7 @@ public class MyTokenBucket {
     private Long lastRefillTime;
 
     public MyTokenBucket(int refillRate) {
-        this.capacity = (long) Math.min(refillRate * 2, Integer.MAX_VALUE);
+        this.capacity = (long) refillRate;
         this.refillRate = refillRate;
         this.tokens = 0L;
         this.lastRefillTime = System.currentTimeMillis();
@@ -57,13 +57,9 @@ public class MyTokenBucket {
         // 1 获取当前的时间
         long curTime = System.currentTimeMillis();
         long sub = curTime - lastRefillTime;
-        // 2 计算出与上一次补充的时间相差了多少秒
-        long dif = sub / 1000;
-        // 3 补充相应的令牌
-        this.tokens = Math.min(this.capacity, this.tokens + dif * refillRate);
-        // 4 至少超过 1 秒的时间间隔才更新时间
-        if (sub >= 1000) {
-            lastRefillTime = curTime;
-        }
+        // 2 补充相应的令牌
+        this.tokens = Math.min(this.capacity, this.tokens + sub * refillRate / 1000);
+        // 3 更新时间
+        lastRefillTime = curTime;
     }
 }
