@@ -179,6 +179,7 @@ public class HttpUtils {
                     file.seek(start);
                     file.write(body.bytes());
                     start += consume;
+                    bucket.completeConsume(consume);
                 } catch (Exception e) {
                     LogUtils.warning(LOGGER, String.format("分片下载异常：%s，两秒后重试", e.getMessage()));
                     SleepUtils.sleep(2000);
