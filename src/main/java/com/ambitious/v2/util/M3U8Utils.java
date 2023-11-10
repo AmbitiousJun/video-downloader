@@ -11,6 +11,10 @@ import com.ambitious.v2.transfer.FileChannelTsTransfer;
 import com.ambitious.v2.transfer.TsTransfer;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,17 +70,19 @@ public class M3U8Utils {
         }
         while (true) {
             LogUtils.info(LOGGER, "正在解析 m3u8 信息...");
-            HttpURLConnection conn = null;
-            try {
-                conn = HttpUtils.genHttpConnection(new HttpUtils.HttpOptions(url, headerMap));
-                conn.setRequestProperty("Connection", "Close");
-                conn.setRequestMethod("HEAD");
-                conn.connect();
-                int code = conn.getResponseCode();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .headers(Headers.of(headerMap))
+                    .header("Connection", "Close")
+                    .get()
+                    .build();
+            OkHttpClient client = HttpUtils.getOkHttpClient();
+            try (Response resp = client.newCall(request).execute()) {
+                int code = resp.code();
                 if (code != HttpStatus.HTTP_OK) {
                     throw new RuntimeException("错误码：" + code);
                 }
-                String contentType = conn.getHeaderField("Content-Type");
+                String contentType = resp.header("Content-Type");
                 if (StrUtil.isEmpty(contentType)) {
                     throw new RuntimeException("获取不到 Content-Type 属性");
                 }
@@ -85,8 +91,6 @@ public class M3U8Utils {
             } catch (Exception e) {
                 LogUtils.warning(LOGGER, String.format("解析异常：%s，两秒后重试", e.getMessage()));
                 SleepUtils.sleep(2000);
-            } finally {
-                HttpUtils.closeConn(conn);
             }
         }
     }

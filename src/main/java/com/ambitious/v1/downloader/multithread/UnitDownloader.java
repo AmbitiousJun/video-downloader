@@ -1,5 +1,9 @@
 package com.ambitious.v1.downloader.multithread;
 
+import com.ambitious.v2.util.HttpUtils;
+import okhttp3.Headers;
+import okhttp3.Request;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -42,31 +46,12 @@ public class UnitDownloader {
      * 下载分片
      */
     public void download(AtomicInteger fileCurSize) throws Exception {
-        HttpURLConnection conn = null;
-        try {
-            conn = (HttpURLConnection) new URL(this.url).openConnection();
-            conn.setRequestProperty("Range", String.format("bytes=%d-%d", this.from, this.to));
-            conn.connect();
-            InputStream is = conn.getInputStream();
-            try (RandomAccessFile file = new RandomAccessFile(this.dest, "rw")) {
-                // 定位到文件中该分片的位置
-                file.seek(this.from);
-                // 缓冲区
-                byte[] buffer = new byte[1024 * 1024];
-                int len = is.read(buffer, 0, buffer.length);
-                while (len > 0) {
-                    file.write(buffer, 0, len);
-                    // 记录下载的字节数
-                    fileCurSize.addAndGet(len);
-                    len = is.read(buffer, 0, buffer.length);
-                }
-            }
-        } catch (Exception e) {
-            throw new Exception("下载失败");
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
+        Request request = new Request.Builder()
+                .url(this.url)
+                .headers(Headers.of(HttpUtils.genDefaultHeaderMapByUrl(null, this.url)))
+                .header("Range", String.format("bytes=%d-%d", this.from, this.to))
+                .build();
+        HttpUtils.downloadWithRateLimit(request, this.dest);
+        fileCurSize.addAndGet(this.to - this.from);
     }
 }
