@@ -52,15 +52,15 @@
 1. 下载压缩包，解压
 
 ```shell
-curl -L -o video-downloader-1.2.0.zip https://github.com/AmbitiousJun/video-downloader/releases/download/v1.2.0/video-downloader-1.2.0.zip
+curl -L -o video-downloader-1.2.1.zip https://github.com/AmbitiousJun/video-downloader/releases/download/v1.2.1/video-downloader-1.2.1.zip
 
-unzip ./video-downloader-1.2.0.zip
+unzip ./video-downloader-1.2.1.zip
 ```
 
 2. 复制一份配置文件
 
 ```shell
-cd video-downloader-1.2.0/config
+cd video-downloader-1.2.1/config
 cp config-example.yml config.yml
 ```
 
