@@ -42,9 +42,9 @@ public class MyTokenBucket {
     private final AtomicLong totalConsume;
 
     /**
-     * 每次最多消耗掉 8KB 的令牌
+     * 每次最多消耗掉 128KB 的令牌
      */
-    private static final Integer MAX_CONSUME = 8 * 1024;
+    private static final Integer MAX_CONSUME = 128 * 1024;
 
     @SuppressWarnings("all")
     public MyTokenBucket(int refillRate) {
