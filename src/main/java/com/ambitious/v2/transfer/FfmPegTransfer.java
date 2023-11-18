@@ -1,6 +1,7 @@
 package com.ambitious.v2.transfer;
 
 import cn.hutool.core.util.StrUtil;
+import com.ambitious.v2.config.Config;
 import com.ambitious.v2.util.LogUtils;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -94,7 +95,7 @@ public class FfmPegTransfer implements TsTransfer {
             current += handleSize;
             String concat = concatBuilder.toString();
             List<String> cmd = Lists.newArrayList(
-                    "ffmpeg",
+                    Config.FFMPEG_PATH,
                     "-i",
                     concat,
                     "-c",
