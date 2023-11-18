@@ -115,7 +115,7 @@ public class FfmPegTransfer implements TsTransfer {
         if (!tempTsFile.exists()) {
             throw new RuntimeException("转码异常");
         }
-        executeCmd(Lists.newArrayList("ffmpeg", "-i", "concat:" + tempTsFile.getAbsolutePath(), "-c", "copy", output.getAbsolutePath()));
+        executeCmd(Lists.newArrayList(Config.FFMPEG_PATH, "-i", "concat:" + tempTsFile.getAbsolutePath(), "-c", "copy", output.getAbsolutePath()));
         if (!tempTsFile.delete()) {
             LogUtils.warning(LOGGER, "临时 ts 文件删除失败");
         }
