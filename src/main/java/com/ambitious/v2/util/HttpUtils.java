@@ -54,33 +54,6 @@ public class HttpUtils {
     public static final String HTTP_HEADER_RANGES_KEY = "Range";
 
     /**
-     * 生成 HttpConnection 的参数
-     */
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class HttpOptions {
-        private String url;
-        private String method = "GET";
-        private Map<String, String> headers;
-
-        public HttpOptions(String url, Map<String, String> headers) {
-            this.url = url;
-            this.headers = headers;
-        }
-    }
-
-    /**
-     * 关闭 Http 连接
-     * @param connection connection
-     */
-    public static void closeConn(HttpURLConnection connection) {
-        if (connection != null) {
-            connection.disconnect();
-        }
-    }
-
-    /**
      * 生成一个带有默认 header 头的 headerMap
      * @param baseMap 已存在的 map
      * @param url 需要检测的 url
@@ -98,27 +71,6 @@ public class HttpUtils {
             m.put("Referer", "https://bilibili.com");
         }
         return m;
-    }
-
-    /**
-     * 生成一个 Http 请求 URL
-     * @param options 请求参数
-     * @return HttpURLConnection
-     */
-    public static HttpURLConnection genHttpConnection(HttpOptions options) throws IOException {
-        String url = options.getUrl();
-        String method = options.getMethod();
-        Map<String, String> headers = options.getHeaders();
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod(method);
-        if (CollectionUtil.isNotEmpty(headers)) {
-            for (String key : headers.keySet()) {
-                conn.setRequestProperty(key, headers.get(key));
-            }
-        }
-        conn.setConnectTimeout(CONNECT_TIMEOUT);
-        conn.setReadTimeout(READ_TIMEOUT);
-        return conn;
     }
 
     /**
@@ -181,6 +133,9 @@ public class HttpUtils {
                     start += consume;
                     bucket.completeConsume(consume);
                 } catch (Exception e) {
+                    if (e.getMessage().contains("错误码：416")) {
+                        throw new IOException("检测到 416 错误码");
+                    }
                     LogUtils.warning(LOGGER, String.format("分片下载异常：%s，两秒后重试", e.getMessage()));
                     SleepUtils.sleep(2000);
                 }
@@ -254,21 +209,26 @@ public class HttpUtils {
             throw new IllegalArgumentException("url 和 headers 必传");
         }
         removeRangeHeader(headers);
-        HttpURLConnection conn = genHttpConnection(new HttpOptions(url, method, headers));
-        try {
-            conn.setRequestMethod("HEAD");
-            conn.connect();
-            int code = conn.getResponseCode();
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(Headers.of(headers))
+                .header("Connection", "Close")
+                .get()
+                .build();
+        try (Response resp = getOkHttpClient().newCall(request).execute()) {
+            int code = resp.code();
             if (!is2xxSuccess(code)) {
-                throw new IOException("连接远程 url 失败");
+                throw new IOException("连接远程地址失败");
             }
-            long contentLength = conn.getContentLengthLong();
-            if (contentLength == -1) {
+            ResponseBody body = resp.body();
+            if (body == null) {
+                throw new IOException("空响应体");
+            }
+            long contentLength = body.contentLength();
+            if (contentLength <= 0) {
                 throw new IOException("无法获取资源的 Content-Length 属性");
             }
             return new long[] { from, contentLength };
-        } finally {
-            closeConn(conn);
         }
     }
 
