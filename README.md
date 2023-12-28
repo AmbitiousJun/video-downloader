@@ -1,5 +1,11 @@
 # video-downloader
 
+> 注：
+> 
+> 本项目现有功能已基本稳定，后续不再更新
+> 
+> 新特性会转移到 Go 实现版本 => [GitHub - AmbitiousJun/video-downloader-go: “爱优腾芒解析”视频批量下载器 Golang 版本](https://github.com/AmbitiousJun/video-downloader-go)
+
 这是一个使用 Java 语言编写的多线程视频下载器，适配 “爱优腾芒”。开发这个项目的目的就是为了**批量下载**视频的时候解放双手，不需要手动转换 m3u8，也不需要等到视频下载完成之后再去一个一个改名。
 
 一句话总结这个项目：类似 docker-compose，本项目就是将下载的任务以及下载方式提前通过配置的方式编排好，然后启动程序自动下载。
